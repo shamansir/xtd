@@ -232,7 +232,6 @@ assert.equal(parser.parse('teeth doctor every thursday till august').code(),
 assert.equal(parser.parse('sports from may every friday').code(),
              todo.text('sports').repeats(todo.WEEKDAY, todo.FRI).roll(todo.MONTH, todo.MAY).build().code());
 
-// TODO: change WEEKDAY -> WEEKDAY and so on
         // my poem is done, my painting was done in 2004
         // #1 make bed, #2 make toast, #3 go to work
         // buy food; buy milk, buy something, buy cheese
