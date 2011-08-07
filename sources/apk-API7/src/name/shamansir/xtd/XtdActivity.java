@@ -10,6 +10,7 @@ import org.mozilla.javascript.Scriptable;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 public class XtdActivity extends Activity {    
     
@@ -32,7 +33,8 @@ public class XtdActivity extends Activity {
                     "calc-parser", 0, null);
             cx.evaluateString(scope, "result = CalcParser.parse('(3+4)*2+2*3')", "res", 0, null);
             Double value = (Double) scope.get("result", scope);
-            Log.v(TAG, String.valueOf(value));        
+            Log.v(TAG, String.valueOf(value));
+            ((TextView)findViewById(R.id.helloText)).setText(String.valueOf(value));
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         } finally {
