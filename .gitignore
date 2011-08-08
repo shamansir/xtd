@@ -2,3 +2,5 @@ sources/apk-API*/.classpath
 sources/apk-API*/.project
 sources/apk-API*/bin
 sources/apk-API*/gen
+sources/apk-API*/libs
+sources/apk-API*/local.properties
