@@ -32,26 +32,11 @@
          application and should be checked into Version Control Systems. -->
     <property file="default.properties" />
 
-
     <!-- Required pre-setup import -->
     <import file="${sdk.dir}/tools/ant/pre_setup.xml" />
 
-
-<!-- extension targets. Uncomment the ones where you want to do custom work
-     in between standard targets -->
-    <target name="-pre-build">
-    </target>
-    <target name="-pre-compile">
-        <!-- <echoproperties/> -->
-    </target>
-
-<!--
-    [This is typically used for code obfuscation.
-     Compiled code location: ${out.classes.absolute.dir}
-     If this is not done in place, override ${out.dex.input.absolute.dir}] -->
-    <target name="-post-compile">
-        <!-- <echoproperties/> -->
-    </target>
+    <!-- Custom build extensions -->
+    <import file="../build_extend.xml" />
 
     <!-- Execute the Android Setup task that will setup some properties
          specific to the target, and import the build rules files.
