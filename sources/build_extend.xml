@@ -48,12 +48,16 @@
       </sequential>
     </macrodef>
 
-    <property name="assets-src.dir" value="../js" />
-    <property name="assets-dst.dir" value="./assets" />
-    <property name="libs-src.dir" value="../../requirements" />
-    <property name="libs-dst.dir" value="./libs" />
-    <property name="apk-src.dir" value="./bin" />
-    <property name="apk-dst.dir" value="../.." />
+    <property name="root.dir" value="../.." />
+    <property name="sources.dir" value=".." />
+    <property name="project.dir" value="." />
+
+    <property name="assets-src.dir" value="${sources.dir}/js" />
+    <property name="assets-dst.dir" value="${project.dir}/assets" />
+    <property name="libs-src.dir" value="${root.dir}/requirements" />
+    <property name="libs-dst.dir" value="${project.dir}/libs" />
+    <property name="apk-src.dir" value="${project.dir}/bin" />
+    <property name="apk-dst.dir" value="${root.dir}" />
     <!-- <property name="libs-dst.dir" value="${native.libs.dir}" /> -->
 
     <fileset id="assets-src.files" dir="${assets-src.dir}" includes="**/*.js" />
