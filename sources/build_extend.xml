@@ -1,17 +1,51 @@
-<project name="build-extensions" default="error">
+<project name="xtd-build-extensions" default="error">
 
-    <macrodef name="symlinkfileset"> 
-      <attribute name="fsrefid"/> 
-      <attribute name="destdir"/> 
-      <sequential> 
-        <apply executable="ln" dest="@{destdir}" dir="@{destdir}"> 
-          <arg value="-s"/> 
-          <arg value="-f"/> 
-          <arg value="--backup"/> 
-          <mapper type="flatten"/> 
-          <fileset refid="@{fsrefid}"/> 
-        </apply> 
-      </sequential> 
+<!-- The local.properties file is created and updated by the 'android'
+     tool.
+     It contains the path to the SDK. It should *NOT* be checked into
+     Version Control Systems. -->
+    <property file="local.properties" />
+
+    <!-- The build.properties file can be created by you and is never touched
+         by the 'android' tool. This is the place to change some of the
+         default property values used by the Ant rules.
+         Here are some properties you may want to change/update:
+
+         source.dir
+             The name of the source directory. Default is 'src'.
+         out.dir
+             The name of the output directory. Default is 'bin'.
+
+         Properties related to the SDK location or the project target should
+         be updated using the 'android' tool with the 'update' action.
+
+         This file is an integral part of the build system for your
+         application and should be checked into Version Control Systems.
+
+         -->
+    <property file="build.properties" />
+
+    <!-- The default.properties file is created and updated by the 'android'
+         tool, as well as ADT.
+         This file is an integral part of the build system for your
+         application and should be checked into Version Control Systems. -->
+    <property file="default.properties" />
+
+    <!-- Required pre-setup import -->
+    <import file="${sdk.dir}/tools/ant/pre_setup.xml" />
+
+    <macrodef name="symlinkfileset">
+      <attribute name="fsrefid"/>
+      <attribute name="destdir"/>
+      <sequential>
+        <apply executable="ln" dest="@{destdir}" dir="@{destdir}">
+          <arg value="-s"/>
+          <arg value="-f"/>
+          <arg value="--backup"/>
+          <mapper type="flatten"/>
+          <fileset refid="@{fsrefid}"/>
+        </apply>
+      </sequential>
     </macrodef>
 
     <property name="assets-src.dir" value="../js" />
@@ -35,7 +69,7 @@
         <echo message="Getting data from Manifest" />
         <xmlproperty file="AndroidManifest.xml" collapseAttributes="true" />
         <property name="app.version.code" value="${manifest.android:versionCode}" />
-        <property name="app.version.name" value="${manifest.android:versionName}" /> 
+        <property name="app.version.name" value="${manifest.android:versionName}" />
         <property name="api.version" value="${manifest.uses-sdk.android:minSdkVersion}" />
         <echo message="VERSION = ${app.version.code}/${app.version.name}" />
         <echo message="API_VERSION = ${api.version}" />
@@ -66,7 +100,7 @@
         <delete>
            <fileset refid="assets-dst.files" />
         </delete>
-        <echo message="Creating symlinks for files from '${assets-src.dir}' in '${assets-dst.dir}' directory" />       
+        <echo message="Creating symlinks for files from '${assets-src.dir}' in '${assets-dst.dir}' directory" />
         <symlinkfileset fsrefid="assets-src.files" destdir="${assets-dst.dir}" />
         <echo message="Removing files from '${libs-dst.dir}' directory" />
         <delete>
@@ -92,7 +126,8 @@
     <target name="-post-compile" depends="-revert-to-symlinks">
     </target>
 
-    <target name="release-and-get" depends="release,-get-apk">
+    <target name="release" depends="android_rules.release,-get-apk">
     </target>
 
 </project>
+

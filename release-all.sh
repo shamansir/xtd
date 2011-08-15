@@ -13,7 +13,8 @@ do
    API_VER=$i
    echo "Building for API: $API_VER"
    cd $START_DIR/sources/apk-API$API_VER
-   ant release-and-get
+   ant release
 done
 
 cd $START_DIR
+
