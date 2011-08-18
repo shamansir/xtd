@@ -1,4 +1,4 @@
-%{
+{
 /* PEG Markdown Highlight
  * Copyright 2011 Ali Rantakari -- http://hasseg.org
  * Licensed under the GPL2+ and MIT licenses (see LICENSE for more info).
@@ -9,22 +9,9 @@
  * peg-markdown compiler.
  */
 
-/// header_code_here
+// see parser-defs.js for used funtions
 
-#define elem(x)     mk_element((parser_data *)G->data, x, thunk->begin, thunk->end)
-#define elem_s(x)   mk_element((parser_data *)G->data, x, s->pos, thunk->end)
-#define mk_sep      mk_element((parser_data *)G->data, pmh_SEPARATOR, 0,0)
-#define mk_notype   mk_element((parser_data *)G->data, pmh_NO_TYPE, 0,0)
-#define etext(x)    mk_etext((parser_data *)G->data, x)
-#define ADD(x)      add((parser_data *)G->data, x)
-#define EXT(x)      extension((parser_data *)G->data, x)
-#define REF_EXISTS(x) reference_exists((parser_data *)G->data, x)
-#define GET_REF(x)  get_reference((parser_data *)G->data, x)
-#define PARSING_REFERENCES ((parser_data *)G->data)->parsing_only_references
-#define FREE_LABEL(l) { free(l->label); l->label = NULL; }
-#define FREE_ADDRESS(l) { free(l->address); l->address = NULL; }
-
-%}
+}
 
 Doc =       ( Block )*
 
@@ -114,7 +101,7 @@ BulletList = &Bullet (ListTight | ListLoose)
 
 ListTight = a:StartList
             ( ListItemTight
-              { pmh_realelement *el = mk_notype;
+              { pmh_realelement *el = mk_notype();
                 el->children = $$;
                 a = cons(el, a);
               } )+
@@ -131,7 +118,7 @@ ListTight = a:StartList
 ListLoose = a:StartList
             ( b:ListItem BlankLine*
               { b = cons(etext("\n\n"), b); /* In loose list, \n\n added to end of each element */
-                pmh_realelement *el = mk_notype;
+                pmh_realelement *el = mk_notype();
                 el->children = b;
                 a = cons(el, a);
               } )+
@@ -506,7 +493,7 @@ ExplicitLink =  < s:Label Spnl '(' Sp l:Source Spnl Title Sp ')' >
                     FREE_ADDRESS(l);
                 }
 
-Source  = { $$ = mk_notype; }
+Source  = { $$ = mk_notype(); }
           ( '<' < SourceContents > { $$->address = strdup(yytext); } '>'
           | < SourceContents > { $$->address = strdup(yytext); } )
 
@@ -563,7 +550,7 @@ Label = < s:LocMarker
         }
 
 RefSrc = < Nonspacechar+ >
-		 { $$ = mk_notype; $$->address = strdup(yytext); }
+		 { $$ = mk_notype(); $$->address = strdup(yytext); }
 
 RefTitle =  ( RefTitleSingle | RefTitleDouble | RefTitleParens | EmptyTitle )
 
