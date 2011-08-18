@@ -1,101 +1,134 @@
 /// header_code_here
 
-/* var G = {   char *buf;
-  int buflen;
-  int   offset;
-  int   pos;
-  int   limit;
-  char *text;
-  int   textlen;
-  int   begin;
-  int   end;
-  yythunk *thunks;
-  int   thunkslen;
-  int thunkpos;
-  YYSTYPE ss;
-  YYSTYPE *val;
-  YYSTYPE *vals;
-  int valslen;
-  YY_XTYPE data; }; */
-// var thunk = { begin: 0, end: 0 };
+var pmd_LINK            = 0,    /**< Explicit link */
+    pmd_AUTO_LINK_URL   = 1,    /**< Implicit URL link */
+    pmd_AUTO_LINK_EMAIL = 2,    /**< Implicit email link */
+    pmd_IMAGE           = 3,    /**< Image definition */
+    pmd_CODE            = 4,    /**< Code (inline) */
+    pmd_HTML            = 5,    /**< HTML */
+    pmd_HTML_ENTITY     = 6,    /**< HTML special entity definition */
+    pmd_EMPH            = 7,    /**< Emphasized text */
+    pmd_STRONG          = 8,    /**< Strong text */
+    pmd_LIST_BULLET     = 9,    /**< Bullet for an unordered list item */
+    pmd_LIST_ENUMERATOR = 10,   /**< Enumerator for an ordered list item */
+    pmd_COMMENT         = 11,   /**< (HTML) Comment */
 
-/*
-struct pmh_RealElement
-{
-    // "Public" members:
-    // (these must match what's defined in pmh_definitions.h)
-    // -----------------------------------------------
-    pmh_element_type type;
-    unsigned long pos;
-    unsigned long end;
-    struct pmh_RealElement *next;
-    char *label;
-    char *address;
+    // Code assumes that pmd_H1-6 are in order.
+    pmd_H1              = 12,   /**< Header, level 1 */
+    pmd_H2              = 13,   /**< Header, level 2 */
+    pmd_H3              = 14,   /**< Header, level 3 */
+    pmd_H4              = 15,   /**< Header, level 4 */
+    pmd_H5              = 16,   /**< Header, level 5 */
+    pmd_H6              = 17,   /**< Header, level 6 */
 
-    // "Private" members for use by the parser itself:
-    // -----------------------------------------------
+    pmd_BLOCKQUOTE      = 18,   /**< Blockquote */
+    pmd_VERBATIM        = 19,   /**< Verbatim (e.g. block of code) */
+    pmd_HTMLBLOCK       = 20,   /**< Block of HTML */
+    pmd_HRULE           = 21,   /**< Horizontal rule */
+    pmd_REFERENCE       = 22,   /**< Reference */
+    pmd_NOTE            = 23,   /**< Note */
 
-    // next element in list of all elements:
-    struct pmh_RealElement *allElemsNext;
+    // Utility types used by the parser itself:
 
-    // offset to text (for elements of type pmh_EXTRA_TEXT, used when the
-    // parser reads the value of 'text'):
-    int textOffset;
+    // List of pmd_RAW element lists, each to be processed separately from
+    // others (for each element in linked lists of this type, `children` points
+    // to a linked list of pmd_RAW elements):
+    pmd_RAW_LIST        = 24,   /**< Internal to parser. Please ignore. */
 
-    // text content (for elements of type pmh_EXTRA_TEXT):
-    char *text;
+    // Span marker for positions in original input to be post-processed
+    // in a second parsing step:
+    pmd_RAW             = 25,   /**< Internal to parser. Please ignore. */
 
-    // children of element (for elements of type pmh_RAW_LIST)
-    struct pmh_RealElement *children;
-};
-typedef struct pmh_RealElement pmh_realelement;
+    // Additional text to be parsed along with spans in the original input
+    // (these may be added to linked lists of pmd_RAW elements):
+    pmd_EXTRA_TEXT      = 26,   /**< Internal to parser. Please ignore. */
 
+    // Separates linked lists of pmd_RAW elements into parts to be processed
+    // separate from each other:
+    pmd_SEPARATOR       = 27,   /**< Internal to parser. Please ignore. */
 
-// Parser state data:
-typedef struct
-{
-    // Buffer of characters to be parsed:
-    char *charbuf;
+    // Placeholder element used while parsing:
+    pmd_NO_TYPE         = 28,   /**< Internal to parser. Please ignore. */
 
-    // Linked list of {start, end} offset pairs determining which parts
-    pmh_realelement *elem;
-    pmh_realelement *elem_head;
+    // Linked list of *all* elements created while parsing:
+    pmd_ALL             = 29    /**< Internal to parser. Please ignore. */;
 
-    // Current parsing offset within charbuf:
-    unsigned long offset;
+function pmd_type_name(type) {
+    switch (type)
+    {
+        case pmd_SEPARATOR:          return "SEPARATOR"; break;
+        case pmd_EXTRA_TEXT:         return "EXTRA_TEXT"; break;
+        case pmd_NO_TYPE:            return "NO TYPE"; break;
+        case pmd_RAW_LIST:           return "RAW_LIST"; break;
+        case pmd_RAW:                return "RAW"; break;
 
-    // The extensions to use for parsing (bitfield
-    // of enum pmh_extensions):
-    int extensions;
+        case pmd_LINK:               return "LINK"; break;
+        case pmd_IMAGE:              return "IMAGE"; break;
+        case pmd_CODE:               return "CODE"; break;
+        case pmd_HTML:               return "HTML"; break;
+        case pmd_EMPH:               return "EMPH"; break;
+        case pmd_STRONG:             return "STRONG"; break;
+        case pmd_LIST_BULLET:        return "LIST_BULLET"; break;
+        case pmd_LIST_ENUMERATOR:    return "LIST_ENUMERATOR"; break;
+        case pmd_H1:                 return "H1"; break;
+        case pmd_H2:                 return "H2"; break;
+        case pmd_H3:                 return "H3"; break;
+        case pmd_H4:                 return "H4"; break;
+        case pmd_H5:                 return "H5"; break;
+        case pmd_H6:                 return "H6"; break;
+        case pmd_BLOCKQUOTE:         return "BLOCKQUOTE"; break;
+        case pmd_VERBATIM:           return "VERBATIM"; break;
+        case pmd_HTMLBLOCK:          return "HTMLBLOCK"; break;
+        case pmd_HRULE:              return "HRULE"; break;
+        case pmd_REFERENCE:          return "REFERENCE"; break;
+        case pmd_NOTE:               return "NOTE"; break;
+        default:                 return "?";
+    }
+}
 
-    /* Array of parsing result elements, indexed by type:
-    //pmh_realelement **head_elems;
+/**
+* \brief Number of types in pmd_element_type.
+* \sa pmd_element_type
+*/
+var pmd_NUM_TYPES = 30;
 
-    // Whether we are parsing only references:
-    //bool parsing_only_references;
+/**
+* \brief Number of *language element* types in pmd_element_type.
+* \sa pmd_element_type
+*/
+var pmd_NUM_LANG_TYPES = (pmd_NUM_TYPES - 6);
 
-    //  List of reference elements:
-    pmh_realelement *references;
-} parser_data; */
+var pmd_EXT_NOTES = 1;
+var pmd_EXT_DEFLISTS = 2;
 
-function mk_element(data, type, begin, end) {
-    console.log('mk_element: ', data, type, begin, end);
+var pmd_EXTENTIONS = 0;
+
+var refs = Object.create(null); // label: { text:
+                                //          title:
+                                //          address: }
+
+var elems = new Array(pmd_NUM_TYPES);
+
+var TYPESTR = pmd_type_name; // alias
+
+function mk_element(type, pos, content) {
+    if (!elems[type]) elems[type] = [];
+    elems[type].push({ 'type': type, 'pos': pos, content: 'content' });
+    console.log(elems[type][elems.length - 1]);
+    return elems[type][elems.length - 1];
 };
 
 function mk_etext(data, type) {
-    console.log('mk_etext: ', data, type);
+    console.log('mk_etext: ', TYPESTR(type));
 };
 
-function add(data, type) {
-    console.log('add: ', data, type);
+function add(type) {
+    console.log('add: ', TYPESTR(type));
 };
 
-function extension(data, type) {
-    console.log('extension: ', data, type);
-};
-
-function reference_exists(data, type) {
-    console.log('reference_exists: ', data, type);
+function extension(type) {
+    console.log('extension: ', TYPESTR(type));
+    return true;
 };
 
 function reference_exists(data, type) {
@@ -106,19 +139,19 @@ function get_reference(data, type) {
     console.log('get_reference: ', data, type);
 }
 
-function elem(x)     { return mk_element(G.data, x, thunk->begin, thunk->end) }
-function elem_s(x)   { return mk_element(G.data, x, s->pos, thunk->end) }
-function mk_sep()    { return mk_element(G.data, pmh_SEPARATOR, 0,0) }
-function mk_notype() { return mk_element(G.data, pmh_NO_TYPE, 0,0) }
-function etext(x)    { return mk_etext(G.data, x) }
-function ADD(x)      { return add((parser_data *)G->data, x) }
-function EXT(x)      { return extension((parser_data *)G->data, x) }
-function REF_EXISTS(x)   { return reference_exists((parser_data *)G->data, x); }
-function GET_REF(x)      { return get_reference(G.data, x) }
-var PARSING_REFERENCES = G.data.parsing_only_references;
-function FREE_LABEL(l)   { l.label = null; }
-function FREE_ADDRESS(l) { l.address = null; }
+// aliases
+var elem = mk_element;
+function elem_s(x, s, content) { return mk_element(x, s.pos, s.content); }
+function mk_sep()    { return mk_element(pmd_SEPARATOR, 0,0) }
+function mk_notype() { return mk_element(pmd_NO_TYPE, 0,0) }
+function etext(x)    { return mk_etext(x) }
+function ADD(x)      { return add(x) }
+function EXT(x)      { return pmd_EXTENTIONS & x }
+function REF_EXISTS(x)   { return refs[x] !== undefined; }
+function GET_REF(x)      { return refs[x]; }
+//var PARSING_REFERENCES = G.data.parsing_only_references;
+//function FREE_LABEL(l)   { l.label = null; }
+//function FREE_ADDRESS(l) { l.address = null; }
 
 var $$ = null;
-var thunk = { begin: -1, end: -1 };
 
