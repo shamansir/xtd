@@ -2,7 +2,7 @@ var LANG = 'en';
 
 var assert = require('assert');
 var todo = require('./todo-builder');
-var parser = require('./parser-'+LANG);
+var parser = require('./todo-parser-'+LANG);
 
 parser.init({ strip_time: true });
 
