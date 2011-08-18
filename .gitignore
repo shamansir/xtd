@@ -5,6 +5,7 @@
 /sources/apk-API*/libs
 /sources/apk-API*/assets/*.js
 /sources/apk-API*/local.properties
+/sources/js/node_modules
 /requirements/rhino*.jar
 /eclipse-files-API*.zip
 /xtd-API*-*.apk
