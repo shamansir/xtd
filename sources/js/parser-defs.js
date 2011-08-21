@@ -1,4 +1,6 @@
-/// header_code_here
+// All the code below is manually translated from C++ to JS by shaman.sir,
+// C++ code author is Ali Rantakari (http://hasseg.org/peg-markdown-highlight/)
+// the C++ file used as source is located here: http://hasseg.org/gitweb?p=peg-markdown-highlight.git;a=blob;f=pmh_parser_head.c;h=51528032723b9fc0eed0e854abbe2847b9d127b4;hb=HEAD
 
 var pmd_LINK            = 0,    /**< Explicit link */
     pmd_AUTO_LINK_URL   = 1,    /**< Implicit URL link */
@@ -53,7 +55,7 @@ var pmd_LINK            = 0,    /**< Explicit link */
     // Linked list of *all* elements created while parsing:
     pmd_ALL             = 29    /**< Internal to parser. Please ignore. */;
 
-function pmd_type_name(type) {
+function type_name(type) {
     switch (type)
     {
         case pmd_SEPARATOR:          return "SEPARATOR"; break;
@@ -103,55 +105,139 @@ var pmd_EXT_DEFLISTS = 2;
 
 var pmd_EXTENTIONS = 0;
 
-var refs = Object.create(null); // label: { text:
-                                //          title:
-                                //          address: }
+var TYPESTR = type_name; // alias
 
-var elems = new Array(pmd_NUM_TYPES);
+var g_state = {
+    'text': '', // text buffer
+    'cur': null, // current element
+    'root': null, // elements linked list head
+    'offset': -1, // current offset in buffer
+    'extentions': pmd_EXTENTIONS, // enabled extentions
+    'elems': [], // elements, indexed by type
+    'parse_only_refs': false, // parse only references
+    'refs': null }; // references linked list head
 
-var TYPESTR = pmd_type_name; // alias
+g_state.tree = new Array(pmd_NUM_TYPES);
 
-function mk_element(type, pos, content) {
-    if (!elems[type]) elems[type] = [];
-    elems[type].push({ 'type': type, 'pos': pos, content: 'content' });
-    console.log(elems[type][elems.length - 1]);
-    return elems[type][elems.length - 1];
+// remove_zero_length_raw_spans(elem)
+// print_raw_spans_inline(elem)
+// process_raw_blocks(state)
+// pmh_markdown_to_elements(text, entensions)
+// pmh_sort_elements_by_pos(elems)
+// cons(elem, list)
+// reverse(list)
+// fix_offsets(state, elem)
+
+function fix_offsets(state, elem) {
+    return elem;
+}
+
+function make_element(state, type, pos, end) {
+    console.log('make_element: ', TYPESTR(type), pos, end);
+    var elem = { 'type'       : type,
+                 'pos'        : pos || -1,
+                 'end'        : end || -1,
+                 'next'       : null,
+                 'label'      : null,
+                 'address'    : null,
+                 // private
+                 'textOffset' : -1, // pmd_EXTRA_TEXT
+                 'text'       : null, // pmd_EXTRA_TEXT
+                 'global_next': null,
+                 'children'   : null }; // pmh_RAW_LIST
+    var prev_all_head = state.elems[pmd_ALL];
+    state.elems[pmd_ALL] = elem;
+    elem.global_next = prev_all_head;
+}
+
+
+// copy_element(state, elem)
+
+function make_extra_text(state, content) {
+    if (content == null) console.warn('content is null');
+    var elem = make_element(state, pmd_EXTRA_TEXT, 0, 0);
+    elem.text = content;
+    return elem;
+}
+
+function add(state, elem) {
+    console.log('add: ', elem);
+
+    if (elem.type != pmd_RAW_LIST) {
+        elem = fix_offsets(state, elem);
+    } else {
+        var cursor = elem.children;
+        var prev = null;
+        while (cursor != null) {
+            next = cursor.next;
+            var new_cursor = fix_offsets(state, cursor);
+            if (prev != null)
+                prev.next = new_cursor;
+            else
+                elem.children = new_cursor;
+            /*while (new_cursor.next != null) {
+                new_cursor = new_cursor.next;
+            }*/
+            if (next != null)
+                new_cursor.next = next;
+            prev = new_cursor;
+            cursor = next;
+        }
+    }
+
+    if (state.elems[elem.type] == null)
+        state.elems[elem.type] = elem;
+    else {
+        var last = elem;
+        while (last.next != null)
+            last = last.next;
+        last.next = state.elems[elem.type];
+        state.elems[elem.type] = elem;
+    }
+
 };
 
-function mk_etext(data, type) {
-    console.log('mk_etext: ', TYPESTR(type));
+function add_element(state, type, pos, end) {
+    var new_element = make_element(state, type, pos, end);
+    add(state, new_element);
+    return new_element;
+}
+
+function add_raw(state, pos, end) {
+    return add_element(state, pmd_RAW, pos, end);
+}
+
+function extension(state, extention) {
+    console.log('extension: ', TYPESTR(type), state.extensions & extension);
+    return state.extensions & extension;
 };
 
-function add(type) {
-    console.log('add: ', TYPESTR(type));
-};
+/* function reference_exists(data, label) {
+    console.log('reference_exists: ', label);
+    return (get_reference)
+}; */
 
-function extension(type) {
-    console.log('extension: ', TYPESTR(type));
-    return true;
-};
-
-function reference_exists(data, type) {
-    console.log('reference_exists: ', data, type);
-};
-
-function get_reference(data, type) {
-    console.log('get_reference: ', data, type);
+function get_reference(state, label) {
+    console.log('get_reference: ', label);
+    if (!label) return;
+    var cursor = state.refs;
+    while (cursor != null) {
+       if (cursor.label && (cursor.label == label)) {
+           return cursor;
+       }
+       cursor = cursor.next;
+    }
 }
 
 // aliases
-var elem = mk_element;
-function elem_s(x, s, content) { return mk_element(x, s.pos, s.content); }
-function mk_sep()    { return mk_element(pmd_SEPARATOR, 0,0) }
-function mk_notype() { return mk_element(pmd_NO_TYPE, 0,0) }
-function etext(x)    { return mk_etext(x) }
-function ADD(x)      { return add(x) }
-function EXT(x)      { return pmd_EXTENTIONS & x }
-function REF_EXISTS(x)   { return refs[x] !== undefined; }
-function GET_REF(x)      { return refs[x]; }
-//var PARSING_REFERENCES = G.data.parsing_only_references;
-//function FREE_LABEL(l)   { l.label = null; }
-//function FREE_ADDRESS(l) { l.address = null; }
-
-var $$ = null;
+function elem(x)     { return make_element(g_state, x, pos, end) }
+function elem_s(x)   { return make_element(g_state, x, s.pos, end) }
+function mk_sep()    { return make_element(g_state, pmd_SEPARATOR, 0,0) }
+function mk_notype() { return make_element(g_state, pmd_NO_TYPE, 0,0) }
+function etext(x)    { return make_extra_text(g_state, x) }
+function ADD(x)      { return add(g_state, x) }
+function EXT(x)      { return extention(g_state, x) }
+function REF_EXISTS(x)   { return (get_reference(g_state, x) != null); }
+function GET_REF(x)      { return get_reference(g_state, x); }
+var PARSING_REFERENCES = g_state.parsing_only_refs;
 
