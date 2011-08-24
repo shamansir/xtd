@@ -230,8 +230,9 @@ function get_reference(state, label) {
 }
 
 // aliases
-function elem(x)     { return make_element(g_state, x, pos, end) }
-function elem_s(x)   { return make_element(g_state, x, s.pos, end) }
+function elem(x,p,e)     { return make_element(g_state, x, p, e) }
+function elem_s(x,s,e)   { return make_element(g_state, x, s.pos, e) }
+function elem_f(x)       { return make_element(g_state, x, 0, 0) }
 function mk_sep()    { return make_element(g_state, pmd_SEPARATOR, 0,0) }
 function mk_notype() { return make_element(g_state, pmd_NO_TYPE, 0,0) }
 function etext(x)    { return make_extra_text(g_state, x) }
@@ -240,4 +241,6 @@ function EXT(x)      { return extention(g_state, x) }
 function REF_EXISTS(x)   { return (get_reference(g_state, x) != null); }
 function GET_REF(x)      { return get_reference(g_state, x); }
 var PARSING_REFERENCES = g_state.parsing_only_refs;
+
+var $$ = null;
 
