@@ -147,11 +147,10 @@ var EXTSTR = ext_name; // alias
 var g_state = {
     'cur': null, // current element
     'root': null, // elements linked list head
-    'offset': -1, // current offset in buffer
     'extensions': pmd_EXTENSIONS, // enabled extensions
     'elems': [], // elements, indexed by type
     'refs': null, // references linked list head
-    'parse_just_refs': false };
+};
 
 g_state.elems = new Array(pmd_NUM_TYPES);
 
@@ -170,28 +169,19 @@ function make_element_i(state, type, pos, end, text) {
                  'label'      : null,
                  'address'    : null,
                  'text'       : text || null, // pmd_EXTRA_TEXT
-                 'global_head': null,
                  'children'   : null }; // pmh_RAW_LIST
 }
 
 function add(state, elem) {
     console.log('add: ', elem);
 
-    var cursor = elem.children;
-    var prev = null;
-    while (cursor != null) {
-        next = cursor.next;
-        if (prev != null)
-            prev.next = cursor;
-        else
-            elem.children = cursor;
-        if (next != null)
-            cursor.next = next;
-        prev = cursor;
-        cursor = next;
-    }
+    if (state.root === null)
+        state.root = elem || null;
 
-    if (state.elems[elem.type] == null)
+    state.cur.next = elem;
+    state.cur = elem;
+
+    if (state.elems[elem.type] === null)
         state.elems[elem.type] = elem;
     else {
         var last = elem;
@@ -201,29 +191,12 @@ function add(state, elem) {
         state.elems[elem.type] = elem;
     }
 
-
-
 };
-
-/* function add_element(state, type, pos, end) {
-    var new_element = make_element(state, type, pos, end);
-    add(state, new_element);
-    return new_element;
-}
-
-function add_raw(state, pos, end) {
-    return add_element(state, pmd_RAW, pos, end);
-} */
 
 function extension(state, extension) {
     console.log('extension: ', EXTSTR(ext), state.extensions & extension);
     return state.extensions & extension;
 };
-
-/* function reference_exists(data, label) {
-    console.log('reference_exists: ', label);
-    return (get_reference)
-}; */
 
 function get_reference(state, label) {
     console.log('get_reference: ', label);
@@ -239,11 +212,11 @@ function get_reference(state, label) {
 
 // ALIAS =======================================================================
 
-function elem(x,c)       { return make_element(g_state,x,c) } // type and chunk
-function elem_t(x,c,t)   { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
-function elem_p(x,p,e)   { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
-function elem_i(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
-function elem_z(x)       { return make_element_i(g_state,x,0,0) } // type only
+function elem(x,c)        { return make_element(g_state,x,c) } // type and chunk
+function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
+function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
+function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
+function elem_z(x)         { return make_element_i(g_state,x,0,0) } // type only
 //function mk_sep()    { return make_element(g_state, pmd_SEPARATOR, 0,0) }
 //function mk_notype() { return make_element(g_state, pmd_NO_TYPE, 0,0) }
 function ADD(x)          { return add(g_state, x) }

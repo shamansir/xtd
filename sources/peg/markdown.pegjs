@@ -15,7 +15,7 @@ start =     Doc
 Doc =       ( Block )*
 
 // placeholder for marking locations
-LocMarker = &. { console.log('LocMarker', _chunk); return _chunk; }
+LocMarker = &. { console.log('LocMarker', _chunk.pos); return _chunk.pos; }
 
 
 Block =     BlankLine*
@@ -52,15 +52,15 @@ SetextBottom2 = "---" '-'* Newline
 
 SetextHeading1 =  &(RawLine SetextBottom1)
                   s:LocMarker
-                  fetch:( ( !Endline Inline )+ Sp? Newline
-                  SetextBottom1 )
-                  { ADD(elem_s(pmd_H1,s,_end)); }
+                  ( !Endline Inline )+ Sp? Newline
+                  SetextBottom1
+                  { console.log('SetextHeading1', _chunk); ADD(elem_pe(pmd_H1,s,_chunk.end)); }
 
 SetextHeading2 =  &(RawLine SetextBottom2)
                   s:LocMarker
-                  fetch:( ( !Endline Inline )+ Sp? Newline
-                  SetextBottom2 )
-                  { ADD(elem_s(pmd_H2,s,_end)); }
+                  ( !Endline Inline )+ Sp? Newline
+                  SetextBottom2
+                  { console.log('SetextHeading2', _chunk); ADD(elem_pe(pmd_H2,s,_chunk.end)); }
 
 Heading = SetextHeading / AtxHeading
 
