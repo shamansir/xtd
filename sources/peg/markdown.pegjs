@@ -15,7 +15,7 @@ start =     Doc
 Doc =       ( Block )*
 
 // placeholder for marking locations
-LocMarker = &. { $$ = elem(pmd_NO_TYPE,_pos,_end); return $$; }
+LocMarker = &. { console.log('LocMarker', _chunk); return _chunk; }
 
 
 Block =     BlankLine*
@@ -38,11 +38,11 @@ Plain =     Inlines
 
 AtxInline = !Newline !(Sp? '#'* Sp Newline) Inline
 
-AtxStart =  fetch:( "######" / "#####" / "####" / "###" / "##" / "#" )
-            { $$ = elem(pmd_H1 + (fetch.length - 1),_pos,_end); return $$; }
+AtxStart =  hashes:( "######" / "#####" / "####" / "###" / "##" / "#" )
+            { return (pmd_H1 + (hashes.length - 1)); }
 
-AtxHeading = fetch:( s:AtxStart Sp? ( AtxInline )+ (Sp? '#'* Sp)? Newline )
-            { ADD(elem_s(s.type,s,_end)); }
+AtxHeading = hx:AtxStart Sp? ( AtxInline )+ (Sp? '#'* Sp)? Newline
+            { console.log('AtxHeading', hx, _chunk); ADD(elem(hx,_chunk)); }
 
 SetextHeading = SetextHeading1 / SetextHeading2
 
@@ -624,19 +624,19 @@ SkipBlock = ( !BlankLine RawLine )+ BlankLine*
 
 // Syntax extensions
 
-ExtendedSpecialChar = &{ EXT(pmd_EXT_NOTES) } ( '^' )
+ExtendedSpecialChar = &{ EXT(pmd_EXT_FOOTNOTES) } ( '^' )
 
-NoteReference = &{ EXT(pmd_EXT_NOTES) }
+NoteReference = &{ EXT(pmd_EXT_FOOTNOTES) }
                 RawNoteReference
 
 RawNoteReference = "[^" ( !Newline !']' . )+ ']'
 
-Note =          &{ EXT(pmd_EXT_NOTES) }
+Note =          &{ EXT(pmd_EXT_FOOTNOTES) }
                 NonindentSpace RawNoteReference ':' Sp
                 ( RawNoteBlock )
                 ( &Indent RawNoteBlock )*
 
-InlineNote =    &{ EXT(pmd_EXT_NOTES) }
+InlineNote =    &{ EXT(pmd_EXT_FOOTNOTES) }
                 "^["
                 ( !']' Inline )+
                 ']'
