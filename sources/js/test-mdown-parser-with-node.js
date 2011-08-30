@@ -7,7 +7,7 @@ require('./parser-defs');
 try {
     var parser = PEG.buildParser(
                   fs.readFileSync('../peg/markdown.pegjs', 'utf-8'));
-    var testContent = fs.readFileSync('../peg/mdown-test/testfiles/bom.md', 'utf-8');
+    var testContent = fs.readFileSync('../peg/mdown-test/just-headings.md', 'utf-8');
 
    /*var parser = PEG.buildParser(
       'start = ruleOne' + '\n\n' +
