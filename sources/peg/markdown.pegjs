@@ -15,7 +15,7 @@ start =     Doc
 Doc =       ( Block )*
 
 // placeholder for marking locations
-LocMarker = &. { console.log('LocMarker', _chunk.pos); return _chunk.pos; }
+LocMarker = &. { return _chunk.pos; }
 
 
 Block =     BlankLine*
@@ -42,7 +42,7 @@ AtxStart =  hashes:( "######" / "#####" / "####" / "###" / "##" / "#" )
             { return (pmd_H1 + (hashes.length - 1)); }
 
 AtxHeading = hx:AtxStart Sp? ( AtxInline )+ (Sp? '#'* Sp)? Newline
-            { console.log('AtxHeading', hx, _chunk); ADD(elem(hx,_chunk)); }
+            { add(elem(hx,_chunk)); }
 
 SetextHeading = SetextHeading1 / SetextHeading2
 
@@ -54,28 +54,31 @@ SetextHeading1 =  &(RawLine SetextBottom1)
                   s:LocMarker
                   ( !Endline Inline )+ Sp? Newline
                   SetextBottom1
-                  { console.log('SetextHeading1', _chunk); ADD(elem_pe(pmd_H1,s,_chunk.end)); }
+                  { ADD(elem_pe(pmd_H1,s,_chunk.end)); }
 
 SetextHeading2 =  &(RawLine SetextBottom2)
                   s:LocMarker
                   ( !Endline Inline )+ Sp? Newline
                   SetextBottom2
-                  { console.log('SetextHeading2', _chunk); ADD(elem_pe(pmd_H2,s,_chunk.end)); }
+                  { ADD(elem_pe(pmd_H2,s,_chunk.end)); }
 
 Heading = SetextHeading / AtxHeading
 
 BlockQuote = a:BlockQuoteRaw
-            { var rawlist = elem_f(pmd_RAW_LIST, 0,0);
+            { var rawlist = elem_z(pmd_RAW_LIST);
               rawlist.children = reverse(a);
               ADD(rawlist);
+              console.log('BlockQuote', rawlist);
+
+              ADD(elem(pmd_BLOCKQUOTE,)
             }
 
 BlockQuoteRaw =  a:StartList
-                 (( fetch1:( '>' ' '? ) { ADD(elem(pmd_BLOCKQUOTE,_pos,_end)); } Line { a = cons($$, a); } )
+                 (( ( '>' ' '?  { return _chunk.pos; }) Line { a = cons($$, a); } )
                   ( !'>' !BlankLine Line { a = cons($$, a); return $$; } )*
-                  ( fetch2:BlankLine { a = cons(etext("\n"), a); } )*
+                  ( (BlankLine) { a = cons(etext("\n"), a); } )*
                  )+
-                 { $$ = a; return $$; }
+                 { return _chunk.end; }
 
 NonblankIndentedLine = !BlankLine IndentedLine
 
@@ -116,7 +119,7 @@ ListTight = a:StartList
 
 ListLoose = a:StartList
             ( b:ListItem BlankLine*
-              { b = cons(etext("\n\n"), b); /* In loose list, \n\n added to end of each element */
+              { b = cons(etext("\n\n"), b); // In loose list, \n\n added to end of each element
                 var el = mk_notype();
                 el.children = b;
                 a = cons(el, a);
@@ -403,8 +406,8 @@ LineBreak = "  " NormalEndline
 
 Symbol =    SpecialChar
 
-# This keeps the parser from getting bogged down on long strings of '*' or '_',
-# or strings of '*' or '_' with space on each side:
+// This keeps the parser from getting bogged down on long strings of '*' or '_',
+// or strings of '*' or '_' with space on each side:
 UlOrStarLine =  (UlLine / StarLine)
 StarLine =      "****" '*'* / Spacechar '*'+ &Spacechar
 UlLine   =      "____" '_'* / Spacechar '_'+ &Spacechar

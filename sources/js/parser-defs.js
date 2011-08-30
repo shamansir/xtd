@@ -156,8 +156,10 @@ g_state.elems = new Array(pmd_NUM_TYPES);
 
 // FUNCTIONS ===================================================================
 
-function make_element(state, type, chunk) {
-    return make_element_i(state, type, chunk.pos, chunk.end, chunk.match);
+function elem_info() {
+    return type_name(this.type) + ' ' +
+           this.pos + ':' + this.end + ' ' + this.text +
+           ((this.children !== null) ? ' has-children' : '');
 }
 
 function make_element_i(state, type, pos, end, text) {
@@ -169,10 +171,15 @@ function make_element_i(state, type, pos, end, text) {
                  'label'      : null,
                  'address'    : null,
                  'text'       : text || null, // pmd_EXTRA_TEXT
-                 'children'   : null }; // pmh_RAW_LIST
+                 'children'   : null, // pmh_RAW_LIST
+                 'toString'   : elem_info };
 }
 
-function add(state, elem) {
+function make_element(state, type, chunk) {
+    return make_element_i(state, type, chunk.pos, chunk.end, chunk.match);
+}
+
+/* function add_element(state, elem) {
     console.log('add: ', elem);
 
     if (state.root === null)
@@ -191,7 +198,7 @@ function add(state, elem) {
         state.elems[elem.type] = elem;
     }
 
-};
+}; */
 
 function extension(state, extension) {
     console.log('extension: ', EXTSTR(ext), state.extensions & extension);
@@ -210,17 +217,27 @@ function get_reference(state, label) {
     }
 }
 
+/* function cons(elem, list) {
+    if (elem === null) throw new Error("Elem for cons func is null");
+
+    cur = elem;
+    while (cur.next !== null) {
+        cur = cur.next;
+    }
+    cur.next = list;
+
+    return elem;
+} */
+
 // ALIAS =======================================================================
 
-function elem(x,c)        { return make_element(g_state,x,c) } // type and chunk
+function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
 function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
 function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
 function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
 function elem_z(x)         { return make_element_i(g_state,x,0,0) } // type only
-//function mk_sep()    { return make_element(g_state, pmd_SEPARATOR, 0,0) }
-//function mk_notype() { return make_element(g_state, pmd_NO_TYPE, 0,0) }
-function ADD(x)          { return add(g_state, x) }
-function EXT(x)          { return extension(g_state, x) }
-function REF_EXISTS(x)   { return (get_reference(g_state, x) != null); }
-function GET_REF(x)      { return get_reference(g_state, x); }
+function add(x)            { return add_element(g_state, x) }
+function ext(x)            { return extension(g_state, x) }
+function ref_exists(x)     { return (get_reference(g_state, x) != null); }
+function get_ref(x)        { return get_reference(g_state, x); }
 
