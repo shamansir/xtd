@@ -4,88 +4,90 @@
 
 // ELEMENTS TYPES ==============================================================
 
-var pmd_LINK            = 0,    /**< Explicit link */
-    pmd_AUTO_LINK_URL   = 1,    /**< Implicit URL link */
-    pmd_AUTO_LINK_EMAIL = 2,    /**< Implicit email link */
-    pmd_IMAGE           = 3,    /**< Image definition */
-    pmd_CODE            = 4,    /**< Code (inline) */
-    pmd_HTML            = 5,    /**< HTML */
-    pmd_HTML_ENTITY     = 6,    /**< HTML special entity definition */
-    pmd_EMPH            = 7,    /**< Emphasized text */
-    pmd_STRONG          = 8,    /**< Strong text */
-    pmd_LIST_BULLET     = 9,    /**< Bullet for an unordered list item */
-    pmd_LIST_ENUMERATOR = 10,   /**< Enumerator for an ordered list item */
-    pmd_COMMENT         = 11,   /**< (HTML) Comment */
+var t = new Object(null);
 
-    // Code assumes that pmd_H1-6 are in order.
-    pmd_H1              = 12,   /**< Header, level 1 */
-    pmd_H2              = 13,   /**< Header, level 2 */
-    pmd_H3              = 14,   /**< Header, level 3 */
-    pmd_H4              = 15,   /**< Header, level 4 */
-    pmd_H5              = 16,   /**< Header, level 5 */
-    pmd_H6              = 17,   /**< Header, level 6 */
+t.pmd_LINK            = 0;    /**< Explicit link */
+t.pmd_AUTO_LINK_URL   = 1;    /**< Implicit URL link */
+t.pmd_AUTO_LINK_EMAIL = 2;    /**< Implicit email link */
+t.pmd_IMAGE           = 3;    /**< Image definition */
+t.pmd_CODE            = 4;    /**< Code (inline) */
+t.pmd_HTML            = 5;    /**< HTML */
+t.pmd_HTML_ENTITY     = 6;    /**< HTML special entity definition */
+t.pmd_EMPH            = 7;    /**< Emphasized text */
+t.pmd_STRONG          = 8;    /**< Strong text */
+t.pmd_LIST_BULLET     = 9;    /**< Bullet for an unordered list item */
+t.pmd_LIST_ENUMERATOR = 10;   /**< Enumerator for an ordered list item */
+t.pmd_COMMENT         = 11;   /**< (HTML) Comment */
 
-    pmd_BLOCKQUOTE      = 18,   /**< Blockquote */
-    pmd_VERBATIM        = 19,   /**< Verbatim (e.g. block of code) */
-    pmd_HTMLBLOCK       = 20,   /**< Block of HTML */
-    pmd_HRULE           = 21,   /**< Horizontal rule */
-    pmd_REFERENCE       = 22,   /**< Reference */
-    pmd_NOTE            = 23,   /**< Note */
+// Code assumes that pmd_H1-6 are in order.
+t.pmd_H1              = 12;   /**< Header, level 1 */
+t.pmd_H2              = 13;   /**< Header, level 2 */
+t.pmd_H3              = 14;   /**< Header, level 3 */
+t.pmd_H4              = 15;   /**< Header, level 4 */
+t.pmd_H5              = 16;   /**< Header, level 5 */
+t.pmd_H6              = 17;   /**< Header, level 6 */
 
-    // Utility types used by the parser itself:
+t.pmd_BLOCKQUOTE      = 18;   /**< Blockquote */
+t.pmd_VERBATIM        = 19;   /**< Verbatim (e.g. block of code) */
+t.pmd_HTMLBLOCK       = 20;   /**< Block of HTML */
+t.pmd_HRULE           = 21;   /**< Horizontal rule */
+t.pmd_REFERENCE       = 22;   /**< Reference */
+t.pmd_NOTE            = 23;   /**< Note */
 
-    // List of pmd_RAW element lists, each to be processed separately from
-    // others (for each element in linked lists of this type, `children` points
-    // to a linked list of pmd_RAW elements):
-    pmd_RAW_LIST        = 24,   /**< Internal to parser. Please ignore. */
+// Utility types used by the parser itself:
 
-    // Span marker for positions in original input to be post-processed
-    // in a second parsing step:
-    pmd_RAW             = 25,   /**< Internal to parser. Please ignore. */
+// List of pmd_RAW element lists, each to be processed separately from
+// others (for each element in linked lists of this type, `children` points
+// to a linked list of pmd_RAW elements):
+t.pmd_RAW_LIST        = 24,   /**< Internal to parser. Please ignore. */
 
-    // Additional text to be parsed along with spans in the original input
-    // (these may be added to linked lists of pmd_RAW elements):
-    pmd_EXTRA_TEXT      = 26,   /**< Internal to parser. Please ignore. */
+// Span marker for positions in original input to be post-processed
+// in a second parsing step:
+t.pmd_RAW             = 25,   /**< Internal to parser. Please ignore. */
 
-    // Separates linked lists of pmd_RAW elements into parts to be processed
-    // separate from each other:
-    pmd_SEPARATOR       = 27,   /**< Internal to parser. Please ignore. */
+// Additional text to be parsed along with spans in the original input
+// (these may be added to linked lists of pmd_RAW elements):
+t.pmd_EXTRA_TEXT      = 26,   /**< Internal to parser. Please ignore. */
 
-    // Placeholder element used while parsing:
-    pmd_NO_TYPE         = 28,   /**< Internal to parser. Please ignore. */
+// Separates linked lists of pmd_RAW elements into parts to be processed
+// separate from each other:
+t.pmd_SEPARATOR       = 27,   /**< Internal to parser. Please ignore. */
 
-    // Linked list of *all* elements created while parsing:
-    pmd_ALL             = 29    /**< Internal to parser. Please ignore. */;
+// Placeholder element used while parsing:
+t.pmd_NO_TYPE         = 28,   /**< Internal to parser. Please ignore. */
 
-function type_name(type) {
+// Linked list of *all* elements created while parsing:
+t.pmd_ALL             = 29    /**< Internal to parser. Please ignore. */;
+
+t.type_name = function(type) {
     switch (type) {
-        case pmd_SEPARATOR:          return "SEPARATOR";
-        case pmd_EXTRA_TEXT:         return "EXTRA_TEXT";
-        case pmd_NO_TYPE:            return "NO_TYPE";
-        case pmd_RAW_LIST:           return "RAW_LIST";
-        case pmd_RAW:                return "RAW";
+        case t.pmd_SEPARATOR:          return "SEPARATOR";
+        case t.pmd_EXTRA_TEXT:         return "EXTRA_TEXT";
+        case t.pmd_NO_TYPE:            return "NO_TYPE";
+        case t.pmd_RAW_LIST:           return "RAW_LIST";
+        case t.pmd_RAW:                return "RAW";
 
-        case pmd_LINK:               return "LINK";
-        case pmd_IMAGE:              return "IMAGE";
-        case pmd_CODE:               return "CODE";
-        case pmd_HTML:               return "HTML";
-        case pmd_EMPH:               return "EMPH";
-        case pmd_STRONG:             return "STRONG";
-        case pmd_LIST_BULLET:        return "LIST_BULLET";
-        case pmd_LIST_ENUMERATOR:    return "LIST_ENUMERATOR";
-        case pmd_H1:                 return "H1";
-        case pmd_H2:                 return "H2";
-        case pmd_H3:                 return "H3";
-        case pmd_H4:                 return "H4";
-        case pmd_H5:                 return "H5";
-        case pmd_H6:                 return "H6";
-        case pmd_BLOCKQUOTE:         return "BLOCKQUOTE";
-        case pmd_VERBATIM:           return "VERBATIM";
-        case pmd_HTMLBLOCK:          return "HTMLBLOCK";
-        case pmd_HRULE:              return "HRULE";
-        case pmd_REFERENCE:          return "REFERENCE";
-        case pmd_NOTE:               return "NOTE";
-        default:                 return "?";
+        case t.pmd_LINK:               return "LINK";
+        case t.pmd_IMAGE:              return "IMAGE";
+        case t.pmd_CODE:               return "CODE";
+        case t.pmd_HTML:               return "HTML";
+        case t.pmd_EMPH:               return "EMPH";
+        case t.pmd_STRONG:             return "STRONG";
+        case t.pmd_LIST_BULLET:        return "LIST_BULLET";
+        case t.pmd_LIST_ENUMERATOR:    return "LIST_ENUMERATOR";
+        case t.pmd_H1:                 return "H1";
+        case t.pmd_H2:                 return "H2";
+        case t.pmd_H3:                 return "H3";
+        case t.pmd_H4:                 return "H4";
+        case t.pmd_H5:                 return "H5";
+        case t.pmd_H6:                 return "H6";
+        case t.pmd_BLOCKQUOTE:         return "BLOCKQUOTE";
+        case t.pmd_VERBATIM:           return "VERBATIM";
+        case t.pmd_HTMLBLOCK:          return "HTMLBLOCK";
+        case t.pmd_HRULE:              return "HRULE";
+        case t.pmd_REFERENCE:          return "REFERENCE";
+        case t.pmd_NOTE:               return "NOTE";
+        default:                       return "?";
     }
 }
 
@@ -93,38 +95,38 @@ function type_name(type) {
 * \brief Number of types in pmd_element_type.
 * \sa pmd_element_type
 */
-var pmd_NUM_TYPES = 30;
+t.pmd_NUM_TYPES = 30;
 
 /**
 * \brief Number of *language element* types in pmd_element_type.
 * \sa pmd_element_type
 */
-var pmd_NUM_LANG_TYPES = (pmd_NUM_TYPES - 6);
-
-var TYPESTR = type_name; // alias
+t.pmd_NUM_LANG_TYPES = (t.pmd_NUM_TYPES - 6);
 
 // EXTENSIONS ==================================================================
 
+var e = new Object(null);
+
 // PHP Markdown Extra extensions
-var pmd_EXT_FOOTNOTES = 1;
-var pmd_EXT_DEF_LISTS = 2; // + "\:"
-var pmd_EXT_SMART_BLOCKLVL_HTML = 4;
-var pmd_EXT_ABBREVIATIONS = 8;
-var pmd_EXT_MARKDOWN_INSIDE_HTML = 16;
-var pmd_EXT_HEADERS_LINKS = 32;
-var pmd_EXT_CURLY_CODE = 64;
-var pmd_EXT_ALT_TABLES = 128; // + "\|"
-var pmd_EXT_NO_EMPHASIS_IN_QUOTES = 256;
+e.pmd_EXT_FOOTNOTES = 1;
+e.pmd_EXT_DEF_LISTS = 2; // + "\:"
+e.pmd_EXT_SMART_BLOCKLVL_HTML = 4;
+e.pmd_EXT_ABBREVIATIONS = 8;
+e.pmd_EXT_MARKDOWN_INSIDE_HTML = 16;
+e.pmd_EXT_HEADERS_LINKS = 32;
+e.pmd_EXT_CURLY_CODE = 64;
+e.pmd_EXT_ALT_TABLES = 128; // + "\|"
+e.pmd_EXT_NO_EMPHASIS_IN_QUOTES = 256;
 
 // Other Extentions
-var pmd_EXT_HASHBANG_CODE_LANG = 512;
+e.pmd_EXT_HASHBANG_CODE_LANG = 512;
 
-var pmd_EXTENSIONS = pmd_EXT_FOOTNOTES
+e.pmd_EXTENSIONS = pmd_EXT_FOOTNOTES
                 /* | pmd_EXT_DEF_LISTS
                    | pmd_EXT_HASHBANG_CODE_LANG
                    | pmd_EXT_HEADERS_LINKS */;
 
-function ext_name(ext) {
+e.ext_name = function(ext) {
     switch (ext) {
         case pmd_EXT_FOOTNOTES:             return "EXT_FOOTNOTES";
         case pmd_EXT_DEF_LISTS:             return "EXT_DEF_LISTS";
@@ -139,8 +141,6 @@ function ext_name(ext) {
         default:                            return "?";
     }
 }
-
-var EXTSTR = ext_name; // alias
 
 // STATE =======================================================================
 
@@ -252,5 +252,9 @@ module.exports = {
     'add': add,
     'ext': ext,
     'ref_exists': ref_exists,
-    'get_ref': get_ref };
+    'get_ref': get_ref,
+    'type': t,
+    'ext': e,
+    'TYPESTR': t.type_name,
+    'EXTSTR': e.ext_name };
 
