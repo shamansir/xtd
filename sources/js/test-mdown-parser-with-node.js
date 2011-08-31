@@ -21,8 +21,8 @@ var pegPath = process.cwd() + '/../peg';
    var result = parser.parse(testContent);
    console.log('=====');
    console.log('result:', util.inspect(result,false,null));
-   console.log('=====');
-   console.log('g_state:', util.inspect(g_state,false,null));
+   /*console.log('=====');
+   console.log('g_state:', util.inspect(g_state,false,null));*/
 //} catch(e) {
 //   console.log(e);
 //}

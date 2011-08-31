@@ -121,23 +121,23 @@ e.pmd_EXT_NO_EMPHASIS_IN_QUOTES = 256;
 // Other Extentions
 e.pmd_EXT_HASHBANG_CODE_LANG = 512;
 
-e.pmd_EXTENSIONS = pmd_EXT_FOOTNOTES
-                /* | pmd_EXT_DEF_LISTS
-                   | pmd_EXT_HASHBANG_CODE_LANG
-                   | pmd_EXT_HEADERS_LINKS */;
+e.pmd_EXTENSIONS = e.pmd_EXT_FOOTNOTES
+                /* | e.pmd_EXT_DEF_LISTS
+                   | e.pmd_EXT_HASHBANG_CODE_LANG
+                   | e.pmd_EXT_HEADERS_LINKS */;
 
 e.ext_name = function(ext) {
     switch (ext) {
-        case pmd_EXT_FOOTNOTES:             return "EXT_FOOTNOTES";
-        case pmd_EXT_DEF_LISTS:             return "EXT_DEF_LISTS";
-        case pmd_EXT_SMART_BLOCKLVL_HTML:   return "EXT_SMART_BLOCKLVL_HTML";
-        case pmd_EXT_ABBREVIATIONS:         return "EXT_ABBREVIATIONS";
-        case pmd_EXT_MARKDOWN_INSIDE_HTML:  return "EXT_MARKDOWN_INSIDE_HTML";
-        case pmd_EXT_HEADERS_LINKS:         return "EXT_HEADERS_LINKS";
-        case pmd_EXT_CURLY_CODE:            return "EXT_CURLY_CODE";
-        case pmd_EXT_ALT_TABLES:            return "EXT_ALT_TABLES";
-        case pmd_EXT_NO_EMPHASIS_IN_QUOTES: return "EXT_NO_EMPH_IN_QUOTES";
-        case pmd_EXT_HASHBANG_CODE_LANG:    return "EXT_HASHBANG_CODE_LANG";
+        case e.pmd_EXT_FOOTNOTES:             return "EXT_FOOTNOTES";
+        case e.pmd_EXT_DEF_LISTS:             return "EXT_DEF_LISTS";
+        case e.pmd_EXT_SMART_BLOCKLVL_HTML:   return "EXT_SMART_BLOCKLVL_HTML";
+        case e.pmd_EXT_ABBREVIATIONS:         return "EXT_ABBREVIATIONS";
+        case e.pmd_EXT_MARKDOWN_INSIDE_HTML:  return "EXT_MARKDOWN_INSIDE_HTML";
+        case e.pmd_EXT_HEADERS_LINKS:         return "EXT_HEADERS_LINKS";
+        case e.pmd_EXT_CURLY_CODE:            return "EXT_CURLY_CODE";
+        case e.pmd_EXT_ALT_TABLES:            return "EXT_ALT_TABLES";
+        case e.pmd_EXT_NO_EMPHASIS_IN_QUOTES: return "EXT_NO_EMPH_IN_QUOTES";
+        case e.pmd_EXT_HASHBANG_CODE_LANG:    return "EXT_HASHBANG_CODE_LANG";
         default:                            return "?";
     }
 }
@@ -147,12 +147,12 @@ e.ext_name = function(ext) {
 var g_state = {
     'cur': null, // current element
     'root': null, // elements linked list head
-    'extensions': pmd_EXTENSIONS, // enabled extensions
+    'extensions': e.pmd_EXTENSIONS, // enabled extensions
     'elems': [], // elements, indexed by type
     'refs': null, // references linked list head
 };
 
-g_state.elems = new Array(pmd_NUM_TYPES);
+g_state.elems = new Array(t.pmd_NUM_TYPES);
 
 // FUNCTIONS ===================================================================
 
@@ -163,8 +163,8 @@ function elem_info() {
 }
 
 function make_element_i(state, type, pos, end, text) {
-    console.log('make_element: ', TYPESTR(type), pos, end, text);
-    var elem = { 'type'       : type,
+    console.log('make_element: ', t.type_name(type), pos, end, text);
+    return { 'type'       : type,
                  'pos'        : pos || -1,
                  'end'        : end || -1,
                  'next'       : null,
@@ -179,13 +179,16 @@ function make_element(state, type, chunk) {
     return make_element_i(state, type, chunk.pos, chunk.end, chunk.match);
 }
 
-/* function add_element(state, elem) {
+function add_element(state, elem) {
     console.log('add: ', elem);
 
     if (state.root === null)
         state.root = elem || null;
 
-    state.cur.next = elem;
+    if (state.cur !== null) {
+        state.cur.next = elem;
+    }
+
     state.cur = elem;
 
     if (state.elems[elem.type] === null)
@@ -198,10 +201,10 @@ function make_element(state, type, chunk) {
         state.elems[elem.type] = elem;
     }
 
-}; */
+};
 
 function extension(state, extension) {
-    console.log('extension: ', EXTSTR(ext), state.extensions & extension);
+    //console.log('extension: ', e.ext_name(extension), state.extensions & extension);
     return state.extensions & extension;
 };
 
@@ -253,8 +256,9 @@ module.exports = {
     'ext': ext,
     'ref_exists': ref_exists,
     'get_ref': get_ref,
-    'type': t,
-    'ext': e,
+    'state': g_state,
+    'types': t,
+    'exts': e,
     'TYPESTR': t.type_name,
     'EXTSTR': e.ext_name };
 

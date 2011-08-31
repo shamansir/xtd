@@ -11,10 +11,12 @@
 // see parser-defs.js for the source of used functions and variables
 
 {
-   var defs = require(process.cwd() + '/parser-defs');
+   var d = require(process.cwd() + '/parser-defs');
+   var e = d.exts;
+   var t = d.types;
 }
 
-start =     Doc
+start =     Doc { return d.state; }
 
 Doc =       ( Block )*
 
@@ -43,10 +45,10 @@ Plain =     Inlines
 AtxInline = !Newline !(Sp? '#'* Sp Newline) Inline
 
 AtxStart =  hashes:( "######" / "#####" / "####" / "###" / "##" / "#" )
-            { return (pmd_H1 + (hashes.length - 1)); }
+            { return (t.pmd_H1 + (hashes.length - 1)); }
 
 AtxHeading = hx:AtxStart Sp? ( AtxInline )+ (Sp? '#'* Sp)? Newline
-            { add(elem(hx,_chunk)); }
+            { d.add(d.elem(hx,_chunk)); }
 
 SetextHeading = SetextHeading1 / SetextHeading2
 
@@ -58,23 +60,23 @@ SetextHeading1 =  &(RawLine SetextBottom1)
                   s:LocMarker
                   ( !Endline Inline )+ Sp? Newline
                   SetextBottom1
-                  { ADD(elem_pe(pmd_H1,s,_chunk.end)); }
+                  { d.add(d.elem_pe(t.pmd_H1,s,_chunk.end)); }
 
 SetextHeading2 =  &(RawLine SetextBottom2)
                   s:LocMarker
                   ( !Endline Inline )+ Sp? Newline
                   SetextBottom2
-                  { ADD(elem_pe(pmd_H2,s,_chunk.end)); }
+                  { d.add(d.elem_pe(t.pmd_H2,s,_chunk.end)); }
 
 Heading = SetextHeading / AtxHeading
 
 BlockQuote = a:BlockQuoteRaw
-            /*{ var rawlist = elem_z(pmd_RAW_LIST);
+            /*{ var rawlist = elem_z(t.pmd_RAW_LIST);
               rawlist.children = reverse(a);
               ADD(rawlist);
               console.log('BlockQuote', rawlist);
 
-              ADD(elem(pmd_BLOCKQUOTE,)
+              ADD(elem(t.pmd_BLOCKQUOTE,)
             }*/
 
 BlockQuoteRaw =  a:StartList
@@ -91,17 +93,17 @@ VerbatimChunk = ( BlankLine )*
 
 Verbatim =     ff:( s:LocMarker
                  ( VerbatimChunk )+ )
-                 /*{ ADD(elem_s(pmd_VERBATIM,s,_end)); }*/
+                 /*{ ADD(elem_s(t.pmd_VERBATIM,s,_end)); }*/
 
 HorizontalRule = ff:( NonindentSpace
                  ( '*' Sp '*' Sp '*' (Sp '*')*
                  / '-' Sp '-' Sp '-' (Sp '-')*
                  / '_' Sp '_' Sp '_' (Sp '_')*)
                  Sp Newline ) BlankLine+
-                 /*{ ADD(elem(pmd_HRULE,_pos,_end)); }*/
+                 /*{ ADD(elem(t.pmd_HRULE,_pos,_end)); }*/
 
 Bullet = !HorizontalRule NonindentSpace ff:('+' / '*' / '-') Spacechar+
-         /*{ ADD(elem(pmd_LIST_BULLET,_pos,_end)); }*/
+         /*{ ADD(elem(t.pmd_LIST_BULLET,_pos,_end)); }*/
 
 BulletList = &Bullet (ListTight / ListLoose)
 
@@ -114,7 +116,7 @@ ListTight = a:StartList
             BlankLine* !(Bullet / Enumerator)
             /*{ var cur = a;
               while (cur != null) {
-                  var rawlist = elem_f(pmd_RAW_LIST);
+                  var rawlist = elem_f(t.pmd_RAW_LIST);
                   rawlist.children = reverse(cur.children);
                   ADD(rawlist);
                   cur = cur.next;
@@ -130,7 +132,7 @@ ListLoose = a:StartList
               }*/ )+
             /*{ var cur = a;
               while (cur != null) {
-                  var rawlist = elem_f(pmd_RAW_LIST);
+                  var rawlist = elem_f(t.pmd_RAW_LIST);
                   rawlist.children = reverse(cur.children);
                   ADD(rawlist);
                   cur = cur->next;
@@ -154,21 +156,21 @@ ListItemTight =
 
 ListBlock = a:StartList
             !BlankLine Line /*{ a = cons($$, a); }*/
-            ( ListBlockLine /*{ a = cons(elem(pmd_RAW), a); }*/ )*
+            ( ListBlockLine /*{ a = cons(elem(t.pmd_RAW), a); }*/ )*
             /*{ $$ = a;  return $$; }*/
 
 ListContinuationBlock = a:StartList
                         ( ff:( BlankLine* )
                           /*{ if (fetch.length == 0)
-                                a = cons(elem(pmd_SEPARATOR,_pos,_end), a);
+                                a = cons(elem(t.pmd_SEPARATOR,_pos,_end), a);
                             else
-                                a = cons(elem(pmd_RAW),_pos,_end, a);
+                                a = cons(elem(t.pmd_RAW),_pos,_end, a);
                           }*/ )
                         ( Indent ListBlock /*{ a = cons($$, a); }*/ )+
                         /*{ $$ = a; return $$; }*/
 
 Enumerator = NonindentSpace ff:( [0-9]+ '.' /*{ _apos = _pos; _aend = _end }*/ ) Spacechar+
-             /*{ ADD(elem(pmd_LIST_ENUMERATOR,_apos,_aend)); }*/
+             /*{ ADD(elem(t.pmd_LIST_ENUMERATOR,_apos,_aend)); }*/
 
 OrderedList = &Enumerator (ListTight / ListLoose)
 
@@ -215,32 +217,32 @@ HtmlBlockForm = HtmlBlockOpenForm (HtmlBlockForm / !HtmlBlockCloseForm .)* HtmlB
 HtmlBlockOpenH1 = '<' Spnl ("h1" / "H1") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH1 = '<' Spnl '/' ("h1" / "H1") Spnl '>'
 HtmlBlockH1 = ff:( s:LocMarker HtmlBlockOpenH1 (HtmlBlockH1 / !HtmlBlockCloseH1 .)* HtmlBlockCloseH1 )
-                { ADD(elem_s(pmd_H1,s,_end)); }
+                { ADD(elem_s(t.pmd_H1,s,_end)); }
 
 HtmlBlockOpenH2 = '<' Spnl ("h2" / "H2") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH2 = '<' Spnl '/' ("h2" / "H2") Spnl '>'
 HtmlBlockH2 = ff:( s:LocMarker HtmlBlockOpenH2 (HtmlBlockH2 / !HtmlBlockCloseH2 .)* HtmlBlockCloseH2 )
-                { ADD(elem_s(pmd_H2,s,_end)); }
+                { ADD(elem_s(t.pmd_H2,s,_end)); }
 
 HtmlBlockOpenH3 = '<' Spnl ("h3" / "H3") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH3 = '<' Spnl '/' ("h3" / "H3") Spnl '>'
 HtmlBlockH3 = ff:( s:LocMarker HtmlBlockOpenH3 (HtmlBlockH3 / !HtmlBlockCloseH3 .)* HtmlBlockCloseH3 )
-                { ADD(elem_s(pmd_H3,s,_end)); }
+                { ADD(elem_s(t.pmd_H3,s,_end)); }
 
 HtmlBlockOpenH4 = '<' Spnl ("h4" / "H4") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH4 = '<' Spnl '/' ("h4" / "H4") Spnl '>'
 HtmlBlockH4 = ff:( s:LocMarker HtmlBlockOpenH4 (HtmlBlockH4 / !HtmlBlockCloseH4 .)* HtmlBlockCloseH4 )
-                { ADD(elem_s(pmd_H4,s,_end)); }
+                { ADD(elem_s(t.pmd_H4,s,_end)); }
 
 HtmlBlockOpenH5 = '<' Spnl ("h5" / "H5") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH5 = '<' Spnl '/' ("h5" / "H5") Spnl '>'
 HtmlBlockH5 = ff:( s:LocMarker HtmlBlockOpenH5 (HtmlBlockH5 / !HtmlBlockCloseH5 .)* HtmlBlockCloseH5 )
-                { ADD(elem_s(pmd_H5,s,_end)); }
+                { ADD(elem_s(t.pmd_H5,s,_end)); }
 
 HtmlBlockOpenH6 = '<' Spnl ("h6" / "H6") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH6 = '<' Spnl '/' ("h6" / "H6") Spnl '>'
 HtmlBlockH6 = ff:( s:LocMarker HtmlBlockOpenH6 (HtmlBlockH6 / !HtmlBlockCloseH6 .)* HtmlBlockCloseH6 )
-                { ADD(elem_s(pmd_H6,s,_end)); }
+                { ADD(elem_s(t.pmd_H6,s,_end)); }
 
 HtmlBlockOpenMenu = '<' Spnl ("menu" / "MENU") Spnl HtmlAttribute* '>'
 HtmlBlockCloseMenu = '<' Spnl '/' ("menu" / "MENU") Spnl '>'
@@ -397,7 +399,7 @@ EscapedChar =   '\\' !Newline [-\\`|*_{}[\]()#+.!><]
 
 Entity =    ff:( s:LocMarker
             ( HexEntity / DecEntity / CharEntity ) )
-            /*{ ADD(elem_s(pmd_HTML_ENTITY,s,_end)); }*/
+            /*{ ADD(elem_s(t.pmd_HTML_ENTITY,s,_end)); }*/
 
 Endline =   LineBreak / TerminalEndline / NormalEndline
 
@@ -418,44 +420,44 @@ UlLine   =      "____" '_'* / Spacechar '_'+ &Spacechar
 
 Emph =      EmphStar / EmphUl
 
-OneStarOpen  =  !StarLine ff:( '*' ) !Spacechar !Newline /*{ $$ = elem(pmd_NO_TYPE,_pos,_end); }*/
-OneStarClose =  !Spacechar !Newline Inline !StrongStar ff:( '*' ) /*{ $$ = elem(pmd_NO_TYPE,_pos,_end); return $$; }*/
+OneStarOpen  =  !StarLine ff:( '*' ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE,_pos,_end); }*/
+OneStarClose =  !Spacechar !Newline Inline !StrongStar ff:( '*' ) /*{ $$ = elem(t.pmd_NO_TYPE,_pos,_end); return $$; }*/
 
 EmphStar =  s:OneStarOpen
             ( !OneStarClose Inline )*
             OneStarClose
-            /*{ ADD(elem_s(pmd_EMPH,s,_end)); }*/
+            /*{ ADD(elem_s(t.pmd_EMPH,s,_end)); }*/
 
-OneUlOpen  =  !UlLine ff:( '_' ) !Spacechar !Newline /*{ $$ = elem(pmd_NO_TYPE); }*/
-OneUlClose =  !Spacechar !Newline Inline !StrongUl ff:( '_' ) !Alphanumeric /*{ $$ = elem(pmd_NO_TYPE); }*/
+OneUlOpen  =  !UlLine ff:( '_' ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+OneUlClose =  !Spacechar !Newline Inline !StrongUl ff:( '_' ) !Alphanumeric /*{ $$ = elem(t.pmd_NO_TYPE); }*/
 
 EmphUl =    s:OneUlOpen
             ( !OneUlClose Inline )*
             OneUlClose
-            /*{ ADD(elem_s(pmd_EMPH,s,_end)); }*/
+            /*{ ADD(elem_s(t.pmd_EMPH,s,_end)); }*/
 
 Strong = StrongStar / StrongUl
 
-TwoStarOpen =   !StarLine ff:( "**" ) !Spacechar !Newline /*{ $$ = elem(pmd_NO_TYPE); }*/
-TwoStarClose =  !Spacechar !Newline Inline ff:( "**" ) /*{ $$ = elem(pmd_NO_TYPE); }*/
+TwoStarOpen =   !StarLine ff:( "**" ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+TwoStarClose =  !Spacechar !Newline Inline ff:( "**" ) /*{ $$ = elem(t.pmd_NO_TYPE); }*/
 
 StrongStar =    s:TwoStarOpen
                 ( !TwoStarClose Inline )*
                 TwoStarClose
-                /*{ ADD(elem_s(pmd_STRONG)); }*/
+                /*{ ADD(elem_s(t.pmd_STRONG)); }*/
 
-TwoUlOpen =     !UlLine ff:( "__" ) !Spacechar !Newline /*{ $$ = elem(pmd_NO_TYPE); }*/
-TwoUlClose =    !Spacechar !Newline Inline ff:( "__" ) !Alphanumeric /*{ $$ = elem(pmd_NO_TYPE); }*/
+TwoUlOpen =     !UlLine ff:( "__" ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+TwoUlClose =    !Spacechar !Newline Inline ff:( "__" ) !Alphanumeric /*{ $$ = elem(t.pmd_NO_TYPE); }*/
 
 StrongUl =  s:TwoUlOpen
             ( !TwoUlClose Inline )*
             TwoUlClose
-            /*{ ADD(elem_s(pmd_STRONG)); }*/
+            /*{ ADD(elem_s(t.pmd_STRONG)); }*/
 
 Image = '!' ( ExplicitLink / ReferenceLink )
         /*{
             if ($$ != NULL) {
-                $$->type = pmd_IMAGE;
+                $$->type = t.pmd_IMAGE;
                 $$->pos -= 1;
                 ADD($$);
             }
@@ -468,9 +470,9 @@ ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 
 ReferenceLinkDouble =  ff:( s:Label Spnl !"[]" l:Label )
                         /*{
-                        	pmd_realelement *reference = GET_REF(l->label);
+                        	t.pmd_realelement *reference = GET_REF(l->label);
                             if (reference) {
-                                $$ = elem_s(pmd_LINK);
+                                $$ = elem_s(t.pmd_LINK);
                                 $$->label = strdup(l->label);
                                 $$->address = strdup(reference->address);
                             } else
@@ -481,9 +483,9 @@ ReferenceLinkDouble =  ff:( s:Label Spnl !"[]" l:Label )
 
 ReferenceLinkSingle =  ff:( s:Label (Spnl "[]")? )
                         /*{
-                        	pmd_realelement *reference = GET_REF(s->label);
+                        	t.pmd_realelement *reference = GET_REF(s->label);
                             if (reference) {
-                                $$ = elem_s(pmd_LINK);
+                                $$ = elem_s(t.pmd_LINK);
                                 $$->label = strdup(s->label);
                                 $$->address = strdup(reference->address);
                             } else
@@ -493,7 +495,7 @@ ReferenceLinkSingle =  ff:( s:Label (Spnl "[]")? )
 
 ExplicitLink =  ff:( s:Label Spnl '(' Sp l:Source Spnl Title Sp ')' )
                 /*{
-                    $$ = elem_s(pmd_LINK);
+                    $$ = elem_s(t.pmd_LINK);
                     $$->address = strdup(l->address);
                     FREE_LABEL(s);
                     FREE_ADDRESS(l);
@@ -513,7 +515,7 @@ TitleDouble = '"' ( !( '"' Sp ( ')' / Newline ) ) . )* '"'
 
 AutoLink = AutoLinkUrl / AutoLinkEmail
 
-AutoLinkUrl =  ff:( s:LocMarker /*{ s->type = pmd_AUTO_LINK_URL; }*/
+AutoLinkUrl =  ff:( s:LocMarker /*{ s->type = t.pmd_AUTO_LINK_URL; }*/
                '<'
                  ff:( [A-Za-z]+ "://" ( !Newline !'>' . )+ )
                  /*{ s->address = strdup(yytext); }*/
@@ -523,7 +525,7 @@ AutoLinkUrl =  ff:( s:LocMarker /*{ s->type = pmd_AUTO_LINK_URL; }*/
                 ADD(s);
                }*/
 
-AutoLinkEmail = ff:( s:LocMarker /*{ s->type = pmd_AUTO_LINK_EMAIL; }*/
+AutoLinkEmail = ff:( s:LocMarker /*{ s->type = t.pmd_AUTO_LINK_EMAIL; }*/
                 '<'
                   ff:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ )
                   /*{ s->address = strdup(yytext); }*/
@@ -536,7 +538,7 @@ AutoLinkEmail = ff:( s:LocMarker /*{ s->type = pmd_AUTO_LINK_EMAIL; }*/
 Reference = ff:( s:LocMarker
               NonindentSpace !"[]" l:Label ':' Spnl r:RefSrc RefTitle ) BlankLine+
               /*{
-                pmd_realelement *el = elem_s(pmd_REFERENCE);
+                t.pmd_realelement *el = elem_s(t.pmd_REFERENCE);
                 el->label = strdup(l->label);
                 el->address = strdup(r->address);
                 ADD(el);
@@ -545,7 +547,7 @@ Reference = ff:( s:LocMarker
               }*/
 
 Label = ff:( s:LocMarker
-        '[' ( !'^' &{ defs.ext(pmd_EXT_FOOTNOTES) } / &. &{ !defs.ext(pmd_EXT_FOOTNOTES) } )
+        '[' ( !'^' &{ d.ext(e.pmd_EXT_FOOTNOTES) } / &. &{ !d.ext(e.pmd_EXT_FOOTNOTES) } )
         ff:( ( !']' Inline )* )
         /*{ s->label = strdup(yytext); }*/
         ']' )
@@ -571,11 +573,11 @@ RefTitleParens = Spnl '(' ( !(')' Sp Newline / Newline) . )* ')'
 // Starting point for parsing only references:
 References = ( Reference / SkipBlock )*
 
-Ticks1 = ff:( "`" ) !'`' /*{ $$ = elem(pmd_NO_TYPE); }*/
-Ticks2 = ff:( "``" ) !'`' /*{ $$ = elem(pmd_NO_TYPE); }*/
-Ticks3 = ff:( "```" ) !'`' /*{ $$ = elem(pmd_NO_TYPE); }*/
-Ticks4 = ff:( "````" ) !'`' /*{ $$ = elem(pmd_NO_TYPE); }*/
-Ticks5 = ff:( "`````" ) !'`' /*{ $$ = elem(pmd_NO_TYPE); }*/
+Ticks1 = ff:( "`" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+Ticks2 = ff:( "``" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+Ticks3 = ff:( "```" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+Ticks4 = ff:( "````" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+Ticks5 = ff:( "`````" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
 
 Code = ff:( ( s:Ticks1 Sp ( ( !'`' Nonspacechar )+ / !Ticks1 '`'+ / !( Sp Ticks1 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks1
        / s:Ticks2 Sp ( ( !'`' Nonspacechar )+ / !Ticks2 '`'+ / !( Sp Ticks2 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks2
@@ -583,7 +585,7 @@ Code = ff:( ( s:Ticks1 Sp ( ( !'`' Nonspacechar )+ / !Ticks1 '`'+ / !( Sp Ticks1
        / s:Ticks4 Sp ( ( !'`' Nonspacechar )+ / !Ticks4 '`'+ / !( Sp Ticks4 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks4
        / s:Ticks5 Sp ( ( !'`' Nonspacechar )+ / !Ticks5 '`'+ / !( Sp Ticks5 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks5
        ) )
-       /*{ ADD(elem_s(pmd_CODE)); }*/
+       /*{ ADD(elem_s(t.pmd_CODE)); }*/
 
 RawHtml =   (HtmlComment / HtmlBlockScript / HtmlTag)
 
@@ -592,7 +594,7 @@ BlankLine =     Sp Newline
 Quoted =        '"' (!'"' .)* '"' / '\'' (!'\'' .)* '\''
 HtmlAttribute = (AlphanumericAscii / '-')+ Spnl ('=' Spnl (Quoted / (!'>' Nonspacechar)+))? Spnl
 HtmlComment =   ff:( s:LocMarker "<!--" (!"-->" .)* "-->" )
-                /*{ ADD(elem_s(pmd_COMMENT)); }*/
+                /*{ ADD(elem_s(t.pmd_COMMENT)); }*/
 HtmlTag =       '<' Spnl '/'? AlphanumericAscii+ Spnl HtmlAttribute* '/'? Spnl '>'
 Eof =           !.
 Spacechar =     ' ' / '\t'
@@ -621,29 +623,29 @@ StartList = &.
             /*{ $$ = NULL; }*/
 
 Line =  RawLine
-       /*{ $$ = mk_element((parser_data *)G->data, pmd_RAW, $$->pos, $$->end); }*/
+       /*{ $$ = mk_element((parser_data *)G->data, t.pmd_RAW, $$->pos, $$->end); }*/
 
 RawLine = ( ff:( (!'\r' !'\n' .)* Newline ) / ff:( .+ ) Eof )
-          /*{ $$ = elem(pmd_RAW); }*/
+          /*{ $$ = elem(t.pmd_RAW); }*/
 
 SkipBlock = ( !BlankLine RawLine )+ BlankLine*
           / BlankLine+
 
 // Syntax extensions
 
-ExtendedSpecialChar = &{ defs.ext(pmd_EXT_FOOTNOTES) } ( '^' )
+ExtendedSpecialChar = &{ d.ext(e.pmd_EXT_FOOTNOTES) } ( '^' )
 
-NoteReference = &{ defs.ext(pmd_EXT_FOOTNOTES) }
+NoteReference = &{ d.ext(e.pmd_EXT_FOOTNOTES) }
                 RawNoteReference
 
 RawNoteReference = "[^" ( !Newline !']' . )+ ']'
 
-Note =          &{ defs.ext(pmd_EXT_FOOTNOTES) }
+Note =          &{ d.ext(e.pmd_EXT_FOOTNOTES) }
                 NonindentSpace RawNoteReference ':' Sp
                 ( RawNoteBlock )
                 ( &Indent RawNoteBlock )*
 
-InlineNote =    &{ defs.ext(pmd_EXT_FOOTNOTES) }
+InlineNote =    &{ d.ext(e.pmd_EXT_FOOTNOTES) }
                 "^["
                 ( !']' Inline )+
                 ']'
