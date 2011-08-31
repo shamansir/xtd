@@ -154,25 +154,66 @@ var g_state = {
 
 g_state.elems = new Array(t.pmd_NUM_TYPES);
 
+g_state.toString = function() {
+    var result = '\n\n' + 'cur ' + this.cur;
+
+    result += '\n\n' + '// chain ';
+
+    map_elems(this.root, function(elem) {
+       result += elem.toString() + ' -> ';
+    });
+
+    result += '\n\n' + '// refs ';
+
+    map_elems(this.refs, function(elem) {
+       result += elem.toString() + ' -> ';
+    });
+
+    result += '\n\n' + '// elems ';
+
+    for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
+        if (this.elems[i] != null) {
+            result += '\n\n' + t.type_name(i) + ' ';
+            map_elems(this.elems[i], function(elem) {
+                result += elem.toString() + ' -> ';
+            });
+        }
+    }
+
+    return result;
+}
+
 // FUNCTIONS ===================================================================
 
-function elem_info() {
-    return type_name(this.type) + ' ' +
-           this.pos + ':' + this.end + ' ' + this.text +
-           ((this.children !== null) ? ' has-children' : '');
+function map_elems(first, func) {
+    if (first != null) {
+        var cursor = first;
+        while (cursor != null) {
+            if (func) func(cursor);
+            cursor = cursor.next;
+        }
+    }
 }
+
+function elem_info(elm) {
+    return '{' + t.type_name(elm.type) + ' ' +
+           elm.pos + ':' + elm.end + ((elm.text !== null) ? (' [[' + elm.text + ']]') : ' no-text') +
+           ((elm.children !== null) ? ' has-children' : '') + '}';
+}
+
+function _elem_info() { return elem_info(this); }
 
 function make_element_i(state, type, pos, end, text) {
     console.log('make_element: ', t.type_name(type), pos, end, text);
     return { 'type'       : type,
-                 'pos'        : pos || -1,
-                 'end'        : end || -1,
-                 'next'       : null,
-                 'label'      : null,
-                 'address'    : null,
-                 'text'       : text || null, // pmd_EXTRA_TEXT
-                 'children'   : null, // pmh_RAW_LIST
-                 'toString'   : elem_info };
+             'pos'        : pos || -1, // -1 means 0 also
+             'end'        : end || -1, // -1 means 0 also
+             'next'       : null,
+             'label'      : null,
+             'address'    : null,
+             'text'       : text || null, // pmd_EXTRA_TEXT
+             'children'   : null, // pmh_RAW_LIST
+             'toString'   : _elem_info };
 }
 
 function make_element(state, type, chunk) {
