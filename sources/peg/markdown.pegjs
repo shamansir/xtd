@@ -10,6 +10,10 @@
 
 // see parser-defs.js for the source of used functions and variables
 
+{
+   var defs = require(process.cwd() + '/parser-defs');
+}
+
 start =     Doc
 
 Doc =       ( Block )*
@@ -541,7 +545,7 @@ Reference = ff:( s:LocMarker
               }*/
 
 Label = ff:( s:LocMarker
-        '[' ( !'^' &{ ext(pmd_EXT_FOOTNOTES) } / &. &{ !ext(pmd_EXT_FOOTNOTES) } )
+        '[' ( !'^' &{ defs.ext(pmd_EXT_FOOTNOTES) } / &. &{ !defs.ext(pmd_EXT_FOOTNOTES) } )
         ff:( ( !']' Inline )* )
         /*{ s->label = strdup(yytext); }*/
         ']' )
@@ -627,19 +631,19 @@ SkipBlock = ( !BlankLine RawLine )+ BlankLine*
 
 // Syntax extensions
 
-ExtendedSpecialChar = &{ ext(pmd_EXT_FOOTNOTES) } ( '^' )
+ExtendedSpecialChar = &{ defs.ext(pmd_EXT_FOOTNOTES) } ( '^' )
 
-NoteReference = &{ ext(pmd_EXT_FOOTNOTES) }
+NoteReference = &{ defs.ext(pmd_EXT_FOOTNOTES) }
                 RawNoteReference
 
 RawNoteReference = "[^" ( !Newline !']' . )+ ']'
 
-Note =          &{ ext(pmd_EXT_FOOTNOTES) }
+Note =          &{ defs.ext(pmd_EXT_FOOTNOTES) }
                 NonindentSpace RawNoteReference ':' Sp
                 ( RawNoteBlock )
                 ( &Indent RawNoteBlock )*
 
-InlineNote =    &{ ext(pmd_EXT_FOOTNOTES) }
+InlineNote =    &{ defs.ext(pmd_EXT_FOOTNOTES) }
                 "^["
                 ( !']' Inline )+
                 ']'

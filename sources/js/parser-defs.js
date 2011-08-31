@@ -238,6 +238,19 @@ function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, p
 function elem_z(x)         { return make_element_i(g_state,x,0,0) } // type only
 function add(x)            { return add_element(g_state, x) }
 function ext(x)            { return extension(g_state, x) }
-function ref_exists(x)     { return (get_reference(g_state, x) != null); }
-function get_ref(x)        { return get_reference(g_state, x); }
+function ref_exists(x)     { return (get_reference(g_state, x) != null) }
+function get_ref(x)        { return get_reference(g_state, x) }
+
+// EXPORT ======================================================================
+
+module.exports = {
+    'elem': elem,
+    'elem_ct': elem_ct,
+    'elem_pe': elem_pe,
+    'elem_pet': elem_pet,
+    'elem_z': elem_z,
+    'add': add,
+    'ext': ext,
+    'ref_exists': ref_exists,
+    'get_ref': get_ref };
 

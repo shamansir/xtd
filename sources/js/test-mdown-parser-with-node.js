@@ -2,12 +2,12 @@ var fs = require('fs');
 var util = require('util');
 var PEG = require('pegjs');
 
-require('./parser-defs');
+var pegPath = process.cwd() + '/../peg';
 
-try {
+//try {
     var parser = PEG.buildParser(
-                  fs.readFileSync('../peg/markdown.pegjs', 'utf-8'));
-    var testContent = fs.readFileSync('../peg/mdown-test/just-headings.md', 'utf-8');
+                  fs.readFileSync(pegPath + '/markdown.pegjs', 'utf-8'));
+    var testContent = fs.readFileSync(pegPath + '/mdown-test/just-headings.md', 'utf-8');
 
    /*var parser = PEG.buildParser(
       'start = ruleOne' + '\n\n' +
@@ -23,7 +23,7 @@ try {
    console.log('result:', util.inspect(result,false,null));
    console.log('=====');
    console.log('g_state:', util.inspect(g_state,false,null));
-} catch(e) {
-   console.log(e);
-}
+//} catch(e) {
+//   console.log(e);
+//}
 
