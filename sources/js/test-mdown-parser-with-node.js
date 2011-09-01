@@ -14,5 +14,6 @@ try {
     console.log('result:', result.toString());
 } catch(e) {
     console.log('error',e);
+    throw e;
 }
 

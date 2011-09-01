@@ -172,11 +172,12 @@ g_state.toString = function() {
     result += '\n\n' + '// elems ';
 
     for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
-        if (this.elems[i] != null) {
+        var elems = this.elems[i];
+        if (elems != null) {
             result += '\n\n' + t.type_name(i) + ' ';
-            map_elems(this.elems[i], function(elem) {
-                result += elem.toString() + ' -> ';
-            });
+            for (var j = 0; j < elems.length; j++) {
+                result += elems[j].toString() + ' ## ';
+            };
         }
     }
 
@@ -197,8 +198,9 @@ function map_elems(first, func) {
 
 function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
-           elm.pos + ':' + elm.end + ((elm.text !== null) ? (' [[' + elm.text + ']]') : ' no-text') +
-           ((elm.children !== null) ? ' has-children' : '') + '}';
+           elm.pos + ':' + elm.end + ((elm.text != null) ? (' [[' + elm.text + ']]') : ' no-text') +
+           ((elm.children != null) ? ' has-children' : '') +
+           ((elm.data != null) ? (' @@ ' + elm.data) : '') + '}';
 }
 
 function _elem_info() { return elem_info(this); }
@@ -213,6 +215,7 @@ function make_element_i(state, type, pos, end, text) {
              'address'    : null,
              'text'       : text || null, // pmd_EXTRA_TEXT
              'children'   : null, // pmh_RAW_LIST
+             'data'       : null,
              'toString'   : _elem_info };
 }
 
@@ -220,27 +223,23 @@ function make_element(state, type, chunk) {
     return make_element_i(state, type, chunk.pos, chunk.end, chunk.match);
 }
 
-function add_element(state, elem) {
+function add_element(state, elem, data) {
     console.log('add: ', elem);
 
-    if (state.root === null)
+    if (state.root == null)
         state.root = elem || null;
 
-    if (state.cur !== null) {
+    if (state.cur != null) {
         state.cur.next = elem;
     }
 
     state.cur = elem;
 
-    if (state.elems[elem.type] === null)
-        state.elems[elem.type] = elem;
-    else {
-        var last = elem;
-        while (last.next != null)
-            last = last.next;
-        last.next = state.elems[elem.type];
-        state.elems[elem.type] = elem;
-    }
+    if (state.elems[elem.type] == null)
+        state.elems[elem.type] = [];
+    state.elems[elem.type].push(elem);
+
+    elem.data = data;
 
 };
 
@@ -280,10 +279,10 @@ function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } //
 function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
 function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
 function elem_z(x)         { return make_element_i(g_state,x,0,0) } // type only
-function add(x)            { return add_element(g_state, x) }
-function ext(x)            { return extension(g_state, x) }
-function ref_exists(x)     { return (get_reference(g_state, x) != null) }
-function get_ref(x)        { return get_reference(g_state, x) }
+function add(x,d)          { return add_element(g_state,x,d) } // x is element, d (data) is optional
+function ext(x)            { return extension(g_state,x) }
+function ref_exists(x)     { return (get_reference(g_state,x) != null) }
+function get_ref(x)        { return get_reference(g_state,x) }
 
 // EXPORT ======================================================================
 
