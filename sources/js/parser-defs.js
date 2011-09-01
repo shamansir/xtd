@@ -188,6 +188,12 @@ g_state.toString = function() {
     return result;
 }
 
+// TODO: a function that will add node type markers to the text using state refs
+/* g_state.spec(text) {
+    var result = '';
+
+} */
+
 // FUNCTIONS ===================================================================
 
 function map_elems(first, func) {

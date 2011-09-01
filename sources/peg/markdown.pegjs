@@ -423,41 +423,41 @@ UlOrStarLine =  (UlLine / StarLine)
 StarLine =      "****" '*'* / Spacechar '*'+ &Spacechar
 UlLine   =      "____" '_'* / Spacechar '_'+ &Spacechar
 
-Emph =      EmphStar / EmphUl
+Emph =      ( EmphStar / EmphUl )
+            { d.add(d.elem_pet(t.pmd_EMPH,_chunk.pos,_chunk.end,
+                    input.substring(_chunk.pos+1,_chunk.end-1))) }
 
-OneStarOpen  =  !StarLine ff:( '*' ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE,_pos,_end); }*/
-OneStarClose =  !Spacechar !Newline Inline !StrongStar ff:( '*' ) /*{ $$ = elem(t.pmd_NO_TYPE,_pos,_end); return $$; }*/
+OneStarOpen  =  !StarLine '*' !Spacechar !Newline
+OneStarClose =  !Spacechar !Newline Inline !StrongStar '*'
 
-EmphStar =  s:OneStarOpen
+EmphStar =  OneStarOpen
             ( !OneStarClose Inline )*
             OneStarClose
-            /*{ ADD(elem_s(t.pmd_EMPH,s,_end)); }*/
 
-OneUlOpen  =  !UlLine ff:( '_' ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-OneUlClose =  !Spacechar !Newline Inline !StrongUl ff:( '_' ) !Alphanumeric /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+OneUlOpen  =  !UlLine '_' !Spacechar !Newline
+OneUlClose =  !Spacechar !Newline Inline !StrongUl '_' !Alphanumeric
 
-EmphUl =    s:OneUlOpen
+EmphUl =    OneUlOpen
             ( !OneUlClose Inline )*
             OneUlClose
-            /*{ ADD(elem_s(t.pmd_EMPH,s,_end)); }*/
 
-Strong = StrongStar / StrongUl
+Strong = ( StrongStar / StrongUl )
+         { d.add(d.elem_pet(t.pmd_STRONG,_chunk.pos,_chunk.end,
+                    input.substring(_chunk.pos+2,_chunk.end-2))) }
 
-TwoStarOpen =   !StarLine ff:( "**" ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-TwoStarClose =  !Spacechar !Newline Inline ff:( "**" ) /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+TwoStarOpen =   !StarLine "**" !Spacechar !Newline
+TwoStarClose =  !Spacechar !Newline Inline "**"
 
-StrongStar =    s:TwoStarOpen
+StrongStar =    TwoStarOpen
                 ( !TwoStarClose Inline )*
                 TwoStarClose
-                /*{ ADD(elem_s(t.pmd_STRONG)); }*/
 
-TwoUlOpen =     !UlLine ff:( "__" ) !Spacechar !Newline /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-TwoUlClose =    !Spacechar !Newline Inline ff:( "__" ) !Alphanumeric /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+TwoUlOpen =     !UlLine "__" !Spacechar !Newline
+TwoUlClose =    !Spacechar !Newline Inline "__" !Alphanumeric
 
-StrongUl =  s:TwoUlOpen
+StrongUl =  TwoUlOpen
             ( !TwoUlClose Inline )*
             TwoUlClose
-            /*{ ADD(elem_s(t.pmd_STRONG)); }*/
 
 Image = '!' ( ExplicitLink / ReferenceLink )
         /*{
@@ -628,7 +628,7 @@ StartList = &.
             /*{ $$ = NULL; }*/
 
 Line =  RawLine
-        { d.add(d.elem_c(t.pmd_RAW,_chunk)) }
+        /*{ d.add(d.elem_c(t.pmd_RAW,_chunk)) }*/
 
 RawLine = ( ff:( (!'\r' !'\n' .)* Newline ) / ff:( .+ ) Eof )
 

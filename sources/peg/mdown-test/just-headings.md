@@ -7,14 +7,14 @@ One
 
 ##### Five-levelled
 
-Some another paragraph
-With two lines of text
+Some *another* paragraph
+With __two lines__ of text
 
 ## Two-levelled
 
 # And one
 
-Some paragraph of text
+Some **paragraph** of _text_
 
 Woo-Hoo
 -------
