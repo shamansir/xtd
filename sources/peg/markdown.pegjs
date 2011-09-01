@@ -37,6 +37,7 @@ Block =     BlankLine*
             / StyleBlock
             / Para
             / Plain )
+            BlankLine*
 
 Para =      NonindentSpace Inlines BlankLine+
 
@@ -45,10 +46,12 @@ Plain =     Inlines
 AtxInline = !Newline !(Sp? '#'* Sp Newline) Inline
 
 AtxStart =  hashes:( "######" / "#####" / "####" / "###" / "##" / "#" )
-            { return (t.pmd_H1 + (hashes.length - 1)); }
+            { return (t.pmd_H1 + (hashes.length - 1)) }
 
-AtxHeading = hx:AtxStart Sp? ( AtxInline )+ (Sp? '#'* Sp)? Newline
-            { d.add(d.elem(hx,_chunk)); }
+AtxHeading = hx:AtxStart Sp?
+             txt:( ( AtxInline )+ { return _chunk.match } )
+             (Sp? '#'* Sp)? Newline
+             { d.add(d.elem_ct(hx,_chunk,txt)) }
 
 SetextHeading = SetextHeading1 / SetextHeading2
 
@@ -58,15 +61,15 @@ SetextBottom2 = "---" '-'* Newline
 
 SetextHeading1 =  &(RawLine SetextBottom1)
                   s:LocMarker
-                  ( !Endline Inline )+ Sp? Newline
+                  txt:( ( !Endline Inline )+ { return _chunk.match } ) Sp? Newline
                   SetextBottom1
-                  { d.add(d.elem_pe(t.pmd_H1,s,_chunk.end)); }
+                  { d.add(d.elem_pet(t.pmd_H1,s,_chunk.end,txt)) }
 
 SetextHeading2 =  &(RawLine SetextBottom2)
                   s:LocMarker
-                  ( !Endline Inline )+ Sp? Newline
+                  txt:( ( !Endline Inline )+ { return _chunk.match } ) Sp? Newline
                   SetextBottom2
-                  { d.add(d.elem_pe(t.pmd_H2,s,_chunk.end)); }
+                  { d.add(d.elem_pet(t.pmd_H2,s,_chunk.end,txt)) }
 
 Heading = SetextHeading / AtxHeading
 
