@@ -198,7 +198,7 @@ function map_elems(first, func) {
 
 function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
-           elm.pos + ':' + elm.end + ((elm.text != null) ? (' [[' + elm.text + ']]') : ' no-text') +
+           elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~ ') : ' no-text') +
            ((elm.children != null) ? ' has-children' : '') +
            ((elm.data != null) ? (' @@ ' + elm.data) : '') + '}';
 }
@@ -275,6 +275,7 @@ function get_reference(state, label) {
 // ALIAS =======================================================================
 
 function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
+function elem_c(x,c)       { return make_element_i(g_state,x,c.pos,c.end) } // type, chunk (pos,end)
 function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
 function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
 function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
@@ -288,6 +289,7 @@ function get_ref(x)        { return get_reference(g_state,x) }
 
 module.exports = {
     'elem': elem,
+    'elem_c': elem_c,
     'elem_ct': elem_ct,
     'elem_pe': elem_pe,
     'elem_pet': elem_pet,
