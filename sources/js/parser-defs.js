@@ -6,58 +6,59 @@
 
 var t = new Object(null);
 
-t.pmd_LINK            = 0;    /**< Explicit link */
-t.pmd_AUTO_LINK_URL   = 1;    /**< Implicit URL link */
-t.pmd_AUTO_LINK_EMAIL = 2;    /**< Implicit email link */
-t.pmd_IMAGE           = 3;    /**< Image definition */
-t.pmd_CODE            = 4;    /**< Code (inline) */
-t.pmd_HTML            = 5;    /**< HTML */
-t.pmd_HTML_ENTITY     = 6;    /**< HTML special entity definition */
-t.pmd_EMPH            = 7;    /**< Emphasized text */
-t.pmd_STRONG          = 8;    /**< Strong text */
-t.pmd_LIST_BULLET     = 9;    /**< Bullet for an unordered list item */
-t.pmd_LIST_ENUMERATOR = 10;   /**< Enumerator for an ordered list item */
-t.pmd_COMMENT         = 11;   /**< (HTML) Comment */
+t.pmd_PARA            = 0;    /**< Paragraph */
+t.pmd_LINK            = 1;    /**< Explicit link */
+t.pmd_AUTO_LINK_URL   = 2;    /**< Implicit URL link */
+t.pmd_AUTO_LINK_EMAIL = 3;    /**< Implicit email link */
+t.pmd_IMAGE           = 4;    /**< Image definition */
+t.pmd_CODE            = 5;    /**< Code (inline) */
+t.pmd_HTML            = 6;    /**< HTML */
+t.pmd_HTML_ENTITY     = 7;    /**< HTML special entity definition */
+t.pmd_EMPH            = 8;    /**< Emphasized text */
+t.pmd_STRONG          = 9;    /**< Strong text */
+t.pmd_LIST_BULLET     = 10;   /**< Bullet for an unordered list item */
+t.pmd_LIST_ENUMERATOR = 11;   /**< Enumerator for an ordered list item */
+t.pmd_COMMENT         = 12;   /**< (HTML) Comment */
 
 // Code assumes that pmd_H1-6 are in order.
-t.pmd_H1              = 12;   /**< Header, level 1 */
-t.pmd_H2              = 13;   /**< Header, level 2 */
-t.pmd_H3              = 14;   /**< Header, level 3 */
-t.pmd_H4              = 15;   /**< Header, level 4 */
-t.pmd_H5              = 16;   /**< Header, level 5 */
-t.pmd_H6              = 17;   /**< Header, level 6 */
+t.pmd_H1              = 13;   /**< Header, level 1 */
+t.pmd_H2              = 14;   /**< Header, level 2 */
+t.pmd_H3              = 15;   /**< Header, level 3 */
+t.pmd_H4              = 16;   /**< Header, level 4 */
+t.pmd_H5              = 17;   /**< Header, level 5 */
+t.pmd_H6              = 18;   /**< Header, level 6 */
 
-t.pmd_BLOCKQUOTE      = 18;   /**< Blockquote */
-t.pmd_VERBATIM        = 19;   /**< Verbatim (e.g. block of code) */
-t.pmd_HTMLBLOCK       = 20;   /**< Block of HTML */
-t.pmd_HRULE           = 21;   /**< Horizontal rule */
-t.pmd_REFERENCE       = 22;   /**< Reference */
-t.pmd_NOTE            = 23;   /**< Note */
+t.pmd_BLOCKQUOTE      = 19;   /**< Blockquote */
+t.pmd_VERBATIM        = 20;   /**< Verbatim (e.g. block of code) */
+t.pmd_HTMLBLOCK       = 21;   /**< Block of HTML */
+t.pmd_HRULE           = 22;   /**< Horizontal rule */
+t.pmd_REFERENCE       = 23;   /**< Reference */
+t.pmd_NOTE            = 24;   /**< Note */
 
 // Utility types used by the parser itself:
 
 // List of pmd_RAW element lists, each to be processed separately from
 // others (for each element in linked lists of this type, `children` points
 // to a linked list of pmd_RAW elements):
-t.pmd_RAW_LIST        = 24,   /**< Internal to parser. Please ignore. */
+t.pmd_RAW_LIST        = 25,   /**< Internal to parser. Please ignore. */
 
 // Span marker for positions in original input to be post-processed
 // in a second parsing step:
-t.pmd_RAW             = 25,   /**< Internal to parser. Please ignore. */
+t.pmd_RAW             = 26,   /**< Internal to parser. Please ignore. */
 
 // Additional text to be parsed along with spans in the original input
 // (these may be added to linked lists of pmd_RAW elements):
-t.pmd_EXTRA_TEXT      = 26,   /**< Internal to parser. Please ignore. */
+t.pmd_EXTRA_TEXT      = 27,   /**< Internal to parser. Please ignore. */
 
 // Separates linked lists of pmd_RAW elements into parts to be processed
 // separate from each other:
-t.pmd_SEPARATOR       = 27,   /**< Internal to parser. Please ignore. */
+t.pmd_SEPARATOR       = 28,   /**< Internal to parser. Please ignore. */
 
 // Placeholder element used while parsing:
-t.pmd_NO_TYPE         = 28,   /**< Internal to parser. Please ignore. */
+t.pmd_NO_TYPE         = 29,   /**< Internal to parser. Please ignore. */
 
 // Linked list of *all* elements created while parsing:
-t.pmd_ALL             = 29    /**< Internal to parser. Please ignore. */;
+t.pmd_ALL             = 30    /**< Internal to parser. Please ignore. */;
 
 t.type_name = function(type) {
     switch (type) {
@@ -67,6 +68,7 @@ t.type_name = function(type) {
         case t.pmd_RAW_LIST:           return "RAW_LIST";
         case t.pmd_RAW:                return "RAW";
 
+        case t.pmd_PARA:               return "PARA";
         case t.pmd_LINK:               return "LINK";
         case t.pmd_IMAGE:              return "IMAGE";
         case t.pmd_CODE:               return "CODE";
@@ -87,6 +89,8 @@ t.type_name = function(type) {
         case t.pmd_HRULE:              return "HRULE";
         case t.pmd_REFERENCE:          return "REFERENCE";
         case t.pmd_NOTE:               return "NOTE";
+
+
         default:                       return "?";
     }
 }
@@ -95,7 +99,7 @@ t.type_name = function(type) {
 * \brief Number of types in pmd_element_type.
 * \sa pmd_element_type
 */
-t.pmd_NUM_TYPES = 30;
+t.pmd_NUM_TYPES = 31;
 
 /**
 * \brief Number of *language element* types in pmd_element_type.
@@ -206,7 +210,7 @@ function elem_info(elm) {
 function _elem_info() { return elem_info(this); }
 
 function make_element_i(state, type, pos, end, text) {
-    console.log('make_element: ', t.type_name(type), pos, end, text);
+    //console.log('make_element: ', t.type_name(type), pos, end, text);
     return { 'type'       : type,
              'pos'        : pos || -1, // -1 means 0 also
              'end'        : end || -1, // -1 means 0 also
@@ -224,7 +228,7 @@ function make_element(state, type, chunk) {
 }
 
 function add_element(state, elem, data) {
-    console.log('add: ', elem);
+    //console.log('add: ', elem);
 
     if (state.root == null)
         state.root = elem || null;
@@ -249,7 +253,7 @@ function extension(state, extension) {
 };
 
 function get_reference(state, label) {
-    console.log('get_reference: ', label);
+    //console.log('get_reference: ', label);
     if (!label) return;
     var cursor = state.refs;
     while (cursor != null) {
@@ -275,7 +279,8 @@ function get_reference(state, label) {
 // ALIAS =======================================================================
 
 function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
-function elem_c(x,c)       { return make_element_i(g_state,x,c.pos,c.end) } // type, chunk (pos,end)
+function elem_c(x,c)       { return make_element_i(g_state,x,c.pos,c.end,c.match) } // type, chunk (pos,end,text)
+function elem_cz(x,c)      { return make_element_i(g_state,x,c.pos,c.end) } // type, chunk (pos,end)
 function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
 function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
 function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
@@ -290,6 +295,7 @@ function get_ref(x)        { return get_reference(g_state,x) }
 module.exports = {
     'elem': elem,
     'elem_c': elem_c,
+    'elem_cz': elem_cz,
     'elem_ct': elem_ct,
     'elem_pe': elem_pe,
     'elem_pet': elem_pet,

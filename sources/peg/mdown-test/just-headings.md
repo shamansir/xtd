@@ -8,7 +8,7 @@ One
 ##### Five-levelled
 
 Some another paragraph
-With too lines of text
+With two lines of text
 
 ## Two-levelled
 
@@ -22,12 +22,12 @@ Woo-Hoo
 djjdjd
 
 
-* Some text
+ * Some text
 
-  May be a heading?
-  --------------
+   May be a heading?
+   --------------
 
-  Yes?
+   Yes?
 
 
 > ### Header
@@ -38,5 +38,4 @@ djjdjd
 
 Heading with no paragraph below
 ===========
-
 

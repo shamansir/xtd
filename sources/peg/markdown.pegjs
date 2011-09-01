@@ -39,9 +39,9 @@ Block =     BlankLine*
             / Plain )
             BlankLine*
 
-Para =      NonindentSpace Inlines BlankLine+
+Para =      NonindentSpace txt:Inlines BlankLine+ { d.add(d.elem_ct(t.pmd_PARA,_chunk,txt)); }
 
-Plain =     Inlines
+Plain =     Inlines /* { console.log('plain: ', _chunk.match) } */
 
 AtxInline = !Newline !(Sp? '#'* Sp Newline) Inline
 
@@ -88,6 +88,8 @@ BlockQuoteRaw =  a:StartList
                   ( (BlankLine) /*{ a = cons(etext("\n"), a); }*/ )*
                  )+
                  /*{ return _chunk.end; }*/
+
+
 
 NonblankIndentedLine = !BlankLine IndentedLine
 
@@ -376,7 +378,7 @@ StyleBlock =    InStyleTags
                 BlankLine*
 
 Inlines  =  ( !Endline Inline
-              / Endline &Inline )+ Endline?
+              / Endline &Inline )+ Endline? { return _chunk.match }
 
 Inline  = Str
         / Endline
@@ -626,10 +628,9 @@ StartList = &.
             /*{ $$ = NULL; }*/
 
 Line =  RawLine
-       /*{ $$ = mk_element((parser_data *)G->data, t.pmd_RAW, $$->pos, $$->end); }*/
+        { d.add(d.elem_c(t.pmd_RAW,_chunk)) }
 
 RawLine = ( ff:( (!'\r' !'\n' .)* Newline ) / ff:( .+ ) Eof )
-          /*{ $$ = elem(t.pmd_RAW); }*/
 
 SkipBlock = ( !BlankLine RawLine )+ BlankLine*
           / BlankLine+
