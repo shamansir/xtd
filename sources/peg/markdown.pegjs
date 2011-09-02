@@ -20,7 +20,7 @@ start =     Doc { return d.state; }
 
 Doc =       ( Block )*
 
-// placeholder for marking locations TODO: check if required everywhere
+// placeholder for marking locations
 LocMarker = &. { return _chunk.pos; }
 
 
@@ -91,13 +91,13 @@ BlockQuoteRaw =  a:StartList
 
 
 
-NonblankIndentedLine = !BlankLine IndentedLine
+NonblankIndentedLine = !BlankLine txt:IndentedLine { return txt }
 
 VerbatimChunk = ( BlankLine )*
-                ( NonblankIndentedLine )+
+                txt:( NonblankIndentedLine+ ) { return txt.join('') }
 
-Verbatim =     ( VerbatimChunk )+
-               { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+Verbatim =     txt:( VerbatimChunk+ )
+               { d.add(d.elem_ct(t.pmd_VERBATIM,_chunk,txt.join(''))) }
 
 HorizontalRule = NonindentSpace
                  s1:LocMarker
@@ -621,17 +621,17 @@ HexEntity =     '&' '#' [Xx] [0-9a-fA-F]+ ';'
 DecEntity =     '&' '#' [0-9]+ ';'
 CharEntity =    '&' [A-Za-z0-9]+ ';'
 
-// TODO: allow indenting with 3 spaces ?
+// TODO: allow indenting lists with 3 spaces ?
 NonindentSpace =    "   " / "  " / " " / ""
 Indent =            "\t" / "    "
-IndentedLine =      Indent Line
-OptionallyIndentedLine = Indent? Line
+IndentedLine =      Indent txt:Line { return txt }
+OptionallyIndentedLine = Indent? txt:Line { return txt }
 
 // StartList starts a list data structure that can be added to with cons:
 StartList = &.
             /*{ $$ = NULL; }*/
 
-Line =  RawLine
+Line =  RawLine { return _chunk.match }
         /*{ d.add(d.elem_c(t.pmd_RAW,_chunk)) }*/
 
 RawLine = ( (!'\r' !'\n' .)* Newline / .+ Eof )
