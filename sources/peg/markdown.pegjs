@@ -91,13 +91,13 @@ BlockQuoteRaw =  a:StartList
 
 
 
-NonblankIndentedLine = !BlankLine txt:IndentedLine { return txt }
+NonblankIndentedLine = !BlankLine IndentedLine
 
 VerbatimChunk = ( BlankLine )*
-                txt:( NonblankIndentedLine+ ) { return txt.join('') }
+                NonblankIndentedLine+
 
-Verbatim =     txt:( VerbatimChunk+ )
-               { d.add(d.elem_ct(t.pmd_VERBATIM,_chunk,txt.join(''))) }
+Verbatim =     VerbatimChunk+
+               { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
 HorizontalRule = NonindentSpace
                  s1:LocMarker
