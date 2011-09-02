@@ -37,8 +37,9 @@ djjdjd
 *  Some text, multiline text though, Some text, multiline text though, Some text, multiline text though, &amp; Some text, &#124; multiline text though
 And no-space line
 
-    May be a heading?
-    --------------
+      May be a heading?
+
+    -----
 
     Yes?
 

@@ -99,12 +99,14 @@ VerbatimChunk = ( BlankLine )*
 Verbatim =     ( VerbatimChunk )+
                { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
-HorizontalRule = ff:( NonindentSpace
+HorizontalRule = NonindentSpace
+                 s1:LocMarker
                  ( '*' Sp '*' Sp '*' (Sp '*')*
                  / '-' Sp '-' Sp '-' (Sp '-')*
                  / '_' Sp '_' Sp '_' (Sp '_')*)
-                 Sp Newline ) BlankLine+
-                 /*{ ADD(elem(t.pmd_HRULE,_pos,_end)); }*/
+                 s2:LocMarker
+                 Sp Newline BlankLine+
+                 { d.add(d.elem_pe(t.pmd_HRULE,s1,s2)) }
 
 Bullet = !HorizontalRule NonindentSpace ff:('+' / '*' / '-') Spacechar+
          /*{ ADD(elem(t.pmd_LIST_BULLET,_pos,_end)); }*/
