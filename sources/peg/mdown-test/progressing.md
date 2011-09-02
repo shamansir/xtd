@@ -3,6 +3,12 @@ One
 
 #### Four-levelled heading
 
+    Block of code
+    Must keep indent here {
+        Woo-woo olo-lo
+        some = & a + "join"
+    }
+
 ### Three-levelled
 
 ##### Five-levelled
@@ -14,14 +20,14 @@ With __two lines__ of text
 
 # And one
 
-Some **paragraph** of _text_ and some `code` inside, yep?
+Some **paragraph** of _text_ and some `code a lot { }` inside, yep?
 
 Woo-Hoo
 -------
 
 djjdjd
 
-<h1>OHOHO</h1>
+<h5>OHOHO</h5>
 
 <div><html><span>dkdjdjd</span><em>wooo</em><h1>WOOHOO</h1></html></div>
 

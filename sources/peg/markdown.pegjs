@@ -20,7 +20,7 @@ start =     Doc { return d.state; }
 
 Doc =       ( Block )*
 
-// placeholder for marking locations
+// placeholder for marking locations TODO: check if required everywhere
 LocMarker = &. { return _chunk.pos; }
 
 
@@ -96,9 +96,8 @@ NonblankIndentedLine = !BlankLine IndentedLine
 VerbatimChunk = ( BlankLine )*
                 ( NonblankIndentedLine )+
 
-Verbatim =     ff:( s:LocMarker
-                 ( VerbatimChunk )+ )
-                 /*{ ADD(elem_s(t.pmd_VERBATIM,s,_end)); }*/
+Verbatim =     ( VerbatimChunk )+
+               { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
 HorizontalRule = ff:( NonindentSpace
                  ( '*' Sp '*' Sp '*' (Sp '*')*
@@ -223,33 +222,33 @@ HtmlBlockForm = HtmlBlockOpenForm (HtmlBlockForm / !HtmlBlockCloseForm .)* HtmlB
 
 HtmlBlockOpenH1 = '<' Spnl ("h1" / "H1") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH1 = '<' Spnl '/' ("h1" / "H1") Spnl '>'
-HtmlBlockH1 = s:LocMarker HtmlBlockOpenH1 txt:( (HtmlBlockH1 / !HtmlBlockCloseH1 .)* { return _chunk.match } ) HtmlBlockCloseH1
-              { d.add(d.elem_pet(t.pmd_H1,s,_chunk.end,txt)); }
+HtmlBlockH1 = HtmlBlockOpenH1 txt:( (HtmlBlockH1 / !HtmlBlockCloseH1 .)* { return _chunk.match } ) HtmlBlockCloseH1
+              { d.add(d.elem_ct(t.pmd_H1,_chunk,txt)) }
 
 HtmlBlockOpenH2 = '<' Spnl ("h2" / "H2") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH2 = '<' Spnl '/' ("h2" / "H2") Spnl '>'
-HtmlBlockH2 = s:LocMarker HtmlBlockOpenH2 txt:( (HtmlBlockH2 / !HtmlBlockCloseH2 .)* { return _chunk.match } ) HtmlBlockCloseH2
-              { d.add(d.elem_pet(t.pmd_H2,s,_chunk.end,txt)); }
+HtmlBlockH2 = HtmlBlockOpenH2 txt:( (HtmlBlockH2 / !HtmlBlockCloseH2 .)* { return _chunk.match } ) HtmlBlockCloseH2
+              { d.add(d.elem_ct(t.pmd_H2,_chunk,txt)) }
 
 HtmlBlockOpenH3 = '<' Spnl ("h3" / "H3") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH3 = '<' Spnl '/' ("h3" / "H3") Spnl '>'
-HtmlBlockH3 = s:LocMarker HtmlBlockOpenH3 txt:( (HtmlBlockH3 / !HtmlBlockCloseH3 .)* { return _chunk.match } ) HtmlBlockCloseH3
-              { d.add(d.elem_pet(t.pmd_H3,s,_chunk.end,txt)); }
+HtmlBlockH3 = HtmlBlockOpenH3 txt:( (HtmlBlockH3 / !HtmlBlockCloseH3 .)* { return _chunk.match } ) HtmlBlockCloseH3
+              { d.add(d.elem_ct(t.pmd_H3,_chunk,txt)) }
 
 HtmlBlockOpenH4 = '<' Spnl ("h4" / "H4") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH4 = '<' Spnl '/' ("h4" / "H4") Spnl '>'
-HtmlBlockH4 = s:LocMarker HtmlBlockOpenH4 txt:( (HtmlBlockH4 / !HtmlBlockCloseH4 .)* { return _chunk.match } ) HtmlBlockCloseH4
-              { d.add(d.elem_pet(t.pmd_H4,s,_chunk.end,txt)); }
+HtmlBlockH4 = HtmlBlockOpenH4 txt:( (HtmlBlockH4 / !HtmlBlockCloseH4 .)* { return _chunk.match } ) HtmlBlockCloseH4
+              { d.add(d.elem_ct(t.pmd_H4,_chunk,txt)) }
 
 HtmlBlockOpenH5 = '<' Spnl ("h5" / "H5") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH5 = '<' Spnl '/' ("h5" / "H5") Spnl '>'
-HtmlBlockH5 = s:LocMarker HtmlBlockOpenH5 txt:( (HtmlBlockH5 / !HtmlBlockCloseH5 .)* { return _chunk.match } ) HtmlBlockCloseH5
-              { d.add(d.elem_pet(t.pmd_H5,s,_chunk.end,txt)); }
+HtmlBlockH5 = HtmlBlockOpenH5 txt:( (HtmlBlockH5 / !HtmlBlockCloseH5 .)* { return _chunk.match } ) HtmlBlockCloseH5
+              { d.add(d.elem_ct(t.pmd_H5,_chunk,txt)) }
 
 HtmlBlockOpenH6 = '<' Spnl ("h6" / "H6") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH6 = '<' Spnl '/' ("h6" / "H6") Spnl '>'
-HtmlBlockH6 = s:LocMarker HtmlBlockOpenH6 txt:( (HtmlBlockH6 / !HtmlBlockCloseH6 .)* { return _chunk.match } ) HtmlBlockCloseH6
-              { d.add(d.elem_pet(t.pmd_H6,s,_chunk.end,txt)); }
+HtmlBlockH6 = HtmlBlockOpenH6 txt:( (HtmlBlockH6 / !HtmlBlockCloseH6 .)* { return _chunk.match } ) HtmlBlockCloseH6
+              { d.add(d.elem_ct(t.pmd_H6,_chunk,txt)) }
 
 HtmlBlockOpenMenu = '<' Spnl ("menu" / "MENU") Spnl HtmlAttribute* '>'
 HtmlBlockCloseMenu = '<' Spnl '/' ("menu" / "MENU") Spnl '>'
@@ -600,8 +599,8 @@ BlankLine =     Sp Newline
 
 Quoted =        '"' (!'"' .)* '"' / '\'' (!'\'' .)* '\''
 HtmlAttribute = (AlphanumericAscii / '-')+ Spnl ('=' Spnl (Quoted / (!'>' Nonspacechar)+))? Spnl
-HtmlComment =   s:LocMarker "<!--" (!"-->" .)* "-->"
-                { d.add(d.elem_pe(t.pmd_COMMENT,s,_chunk.end)); }
+HtmlComment =   "<!--" (!"-->" .)* "-->"
+                { d.add(d.elem_cz(t.pmd_COMMENT,_chunk)) }
 HtmlTag =       '<' Spnl '/'? AlphanumericAscii+ Spnl HtmlAttribute* '/'? Spnl '>'
 Eof =           !.
 Spacechar =     ' ' / '\t'
@@ -623,17 +622,17 @@ CharEntity =    '&' [A-Za-z0-9]+ ';'
 
 NonindentSpace =    "   " / "  " / " " / ""
 Indent =            "\t" / "    "
-IndentedLine =      Indent Line
+IndentedLine =      Indent txt:Line { return txt }
 OptionallyIndentedLine = Indent? Line
 
 // StartList starts a list data structure that can be added to with cons:
 StartList = &.
             /*{ $$ = NULL; }*/
 
-Line =  RawLine
+Line =  RawLine { return _chunk.match; }
         /*{ d.add(d.elem_c(t.pmd_RAW,_chunk)) }*/
 
-RawLine = ( ff:( (!'\r' !'\n' .)* Newline ) / ff:( .+ ) Eof )
+RawLine = ( (!'\r' !'\n' .)* Newline / .+ Eof )
 
 SkipBlock = ( !BlankLine RawLine )+ BlankLine*
           / BlankLine+
