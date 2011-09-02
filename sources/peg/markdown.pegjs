@@ -187,7 +187,7 @@ ListBlockLine = !BlankLine
 // Parsers for different kinds of block-level HTML content.
 // This is repetitive due to constraints of PEG grammar.
 
-// TODO: add "table"..
+// TODO: add "table"?..
 
 HtmlBlockOpenAddress = '<' Spnl ("address" / "ADDRESS") Spnl HtmlAttribute* '>'
 HtmlBlockCloseAddress = '<' Spnl '/' ("address" / "ADDRESS") Spnl '>'
@@ -601,8 +601,8 @@ BlankLine =     Sp Newline
 
 Quoted =        '"' (!'"' .)* '"' / '\'' (!'\'' .)* '\''
 HtmlAttribute = (AlphanumericAscii / '-')+ Spnl ('=' Spnl (Quoted / (!'>' Nonspacechar)+))? Spnl
-HtmlComment =   ff:( s:LocMarker "<!--" (!"-->" .)* "-->" )
-                /*{ ADD(elem_s(t.pmd_COMMENT)); }*/
+HtmlComment =   s:LocMarker "<!--" (!"-->" .)* "-->"
+                { d.add(d.elem_pe(t.pmd_COMMENT,s,_chunk.end)); }
 HtmlTag =       '<' Spnl '/'? AlphanumericAscii+ Spnl HtmlAttribute* '/'? Spnl '>'
 Eof =           !.
 Spacechar =     ' ' / '\t'

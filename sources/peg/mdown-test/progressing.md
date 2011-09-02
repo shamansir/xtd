@@ -25,6 +25,8 @@ djjdjd
 
 <div><html><span>dkdjdjd</span><em>wooo</em><h1>WOOHOO</h1></html></div>
 
+<!-- comment -->
+
 
 * Some text, multiline text though, Some text, multiline text though, Some text, multiline text though, Some text, multiline text though
 And no-space line
