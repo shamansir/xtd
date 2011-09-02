@@ -404,9 +404,8 @@ Str = NormalChar (NormalChar / '_'+ &Alphanumeric)*
 
 EscapedChar =   '\\' !Newline [-\\`|*_{}[\]()#+.!><]
 
-Entity =    ff:( s:LocMarker
-            ( HexEntity / DecEntity / CharEntity ) )
-            /*{ ADD(elem_s(t.pmd_HTML_ENTITY,s,_end)); }*/
+Entity =    ( HexEntity / DecEntity / CharEntity )
+            { d.add(d.elem_c(t.pmd_HTML_ENTITY,_chunk)) }
 
 Endline =   LineBreak / TerminalEndline / NormalEndline
 
@@ -620,16 +619,17 @@ HexEntity =     '&' '#' [Xx] [0-9a-fA-F]+ ';'
 DecEntity =     '&' '#' [0-9]+ ';'
 CharEntity =    '&' [A-Za-z0-9]+ ';'
 
+// TODO: allow indenting with 3 spaces ?
 NonindentSpace =    "   " / "  " / " " / ""
 Indent =            "\t" / "    "
-IndentedLine =      Indent txt:Line { return txt }
+IndentedLine =      Indent Line
 OptionallyIndentedLine = Indent? Line
 
 // StartList starts a list data structure that can be added to with cons:
 StartList = &.
             /*{ $$ = NULL; }*/
 
-Line =  RawLine { return _chunk.match; }
+Line =  RawLine
         /*{ d.add(d.elem_c(t.pmd_RAW,_chunk)) }*/
 
 RawLine = ( (!'\r' !'\n' .)* Newline / .+ Eof )

@@ -76,6 +76,7 @@ t.type_name = function(type) {
         case t.pmd_EMPH:               return "EMPH";
         case t.pmd_STRONG:             return "STRONG";
         case t.pmd_COMMENT:            return "COMMENT";
+        case t.pmd_HTML_ENTITY:        return "HTML_ENTITY";
         case t.pmd_LIST_BULLET:        return "LIST_BULLET";
         case t.pmd_LIST_ENUMERATOR:    return "LIST_ENUMERATOR";
         case t.pmd_H1:                 return "H1";

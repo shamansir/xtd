@@ -14,7 +14,7 @@ One
 ##### Five-levelled
 
 Some *another* paragraph
-With __two lines__ of text
+With __two lines__ of text &#x7890; and some entities &gt;&lt; inside &#124;
 
 ## Two-levelled
 
@@ -34,7 +34,7 @@ djjdjd
 <!-- comment -->
 
 
-* Some text, multiline text though, Some text, multiline text though, Some text, multiline text though, Some text, multiline text though
+*  Some text, multiline text though, Some text, multiline text though, Some text, multiline text though, &amp; Some text, &#124; multiline text though
 And no-space line
 
     May be a heading?
