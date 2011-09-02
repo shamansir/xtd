@@ -73,23 +73,24 @@ SetextHeading2 =  &(RawLine SetextBottom2)
 
 Heading = SetextHeading / AtxHeading
 
-BlockQuote = a:BlockQuoteRaw
-            /*{ var rawlist = elem_z(t.pmd_RAW_LIST);
-              rawlist.children = reverse(a);
-              ADD(rawlist);
-              console.log('BlockQuote', rawlist);
+// TODO: allow inherited blockquotes?
+BlockQuote = lines:BlockQuoteRaw
+             { var text = '';
+               var w = 0;
+               for (var i = 0; i < lines.length; i++) {
+                   w = lines[i][0];
+                   text += lines[i][1];
+               }
+               d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),w);
+             }
 
-              ADD(elem(t.pmd_BLOCKQUOTE,)
-            }*/
-
-BlockQuoteRaw =  a:StartList
-                 ( ( ( '>' ' '?  /*{ return _chunk.pos; }*/) Line /*{ a = cons($$, a); }*/ )
-                  ( !'>' !BlankLine Line /*{ a = cons($$, a); return $$; }*/ )*
-                  ( (BlankLine) /*{ a = cons(etext("\n"), a); }*/ )*
-                 )+
-                 /*{ return _chunk.end; }*/
-
-
+BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk.match.length } )
+                         start:( Line { return _chunk.match } )
+                         next:( !'>' !BlankLine Line { return _chunk.match } )*
+                         stop:( BlankLine { return '\n' } )*
+                         { return [w, start + next.join('') + stop] }
+                       )+
+                 { return lines; }
 
 NonblankIndentedLine = !BlankLine IndentedLine
 
@@ -108,8 +109,8 @@ HorizontalRule = NonindentSpace
                  Sp Newline BlankLine+
                  { d.add(d.elem_pe(t.pmd_HRULE,s1,s2)) }
 
-Bullet = !HorizontalRule NonindentSpace ff:('+' / '*' / '-') Spacechar+
-         /*{ ADD(elem(t.pmd_LIST_BULLET,_pos,_end)); }*/
+Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
+         { d.add(d.elem_pe(t.pmd_LIST_BULLET,s,s+1)); }
 
 BulletList = &Bullet (ListTight / ListLoose)
 

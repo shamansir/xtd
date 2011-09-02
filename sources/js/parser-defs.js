@@ -281,23 +281,23 @@ function get_reference(state, label) {
     }
 }
 
-/* function cons(elem, list) {
-    if (elem === null) throw new Error("Elem for cons func is null");
+function cons(list, elem) {
+    if (list === null) throw new Error("List for cons func is null");
 
-    cur = elem;
+    cur = list;
     while (cur.next !== null) {
         cur = cur.next;
     }
-    cur.next = list;
+    cur.next = elem;
 
-    return elem;
-} */
+    return list;
+}
 
 // ALIAS =======================================================================
 
 function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
 function elem_c(x,c)       { return make_element_i(g_state,x,c.pos,c.end,c.match) } // type, chunk (pos,end,text)
-function elem_cz(x,c)      { return make_element_i(g_state,x,c.pos,c.end) } // type, chunk (pos,end)
+function elem_cz(x,c)      { return make_element_i(g_state,x,c.pos,c.end) } // type, chunk (pos,end), no text
 function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
 function elem_cn(x,c,n)    { return make_element_i(g_state,x,c.pos,c.end,c.match.substring(n,c.match.length-n)) } // type, chunk (pos,end) and padding
 function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)

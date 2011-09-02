@@ -9,6 +9,8 @@ One
         some = & a + "join"
     }
 
+    And it may contain spaces, of course
+
 ### Three-levelled
 
 ##### Five-levelled
@@ -26,6 +28,12 @@ Woo-Hoo
 -------
 
 djjdjd
+
+> Here *is* another blockquote
+  With several lines
+> Yes it is
+
+> Continues here
 
 <h5>OHOHO</h5>
 
