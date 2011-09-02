@@ -83,7 +83,7 @@ BlockQuote = a:BlockQuoteRaw
             }*/
 
 BlockQuoteRaw =  a:StartList
-                 (( ( '>' ' '?  /*{ return _chunk.pos; }*/) Line /*{ a = cons($$, a); }*/ )
+                 ( ( ( '>' ' '?  /*{ return _chunk.pos; }*/) Line /*{ a = cons($$, a); }*/ )
                   ( !'>' !BlankLine Line /*{ a = cons($$, a); return $$; }*/ )*
                   ( (BlankLine) /*{ a = cons(etext("\n"), a); }*/ )*
                  )+
@@ -223,32 +223,32 @@ HtmlBlockForm = HtmlBlockOpenForm (HtmlBlockForm / !HtmlBlockCloseForm .)* HtmlB
 
 HtmlBlockOpenH1 = '<' Spnl ("h1" / "H1") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH1 = '<' Spnl '/' ("h1" / "H1") Spnl '>'
-HtmlBlockH1 = s:LocMarker HtmlBlockOpenH1 txt:((HtmlBlockH1 / !HtmlBlockCloseH1 .)* { return _chunk.match }) HtmlBlockCloseH1
+HtmlBlockH1 = s:LocMarker HtmlBlockOpenH1 txt:( (HtmlBlockH1 / !HtmlBlockCloseH1 .)* { return _chunk.match } ) HtmlBlockCloseH1
               { d.add(d.elem_pet(t.pmd_H1,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH2 = '<' Spnl ("h2" / "H2") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH2 = '<' Spnl '/' ("h2" / "H2") Spnl '>'
-HtmlBlockH2 = s:LocMarker HtmlBlockOpenH2 txt:((HtmlBlockH2 / !HtmlBlockCloseH2 .)* { return _chunk.match }) HtmlBlockCloseH2
+HtmlBlockH2 = s:LocMarker HtmlBlockOpenH2 txt:( (HtmlBlockH2 / !HtmlBlockCloseH2 .)* { return _chunk.match } ) HtmlBlockCloseH2
               { d.add(d.elem_pet(t.pmd_H2,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH3 = '<' Spnl ("h3" / "H3") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH3 = '<' Spnl '/' ("h3" / "H3") Spnl '>'
-HtmlBlockH3 = s:LocMarker HtmlBlockOpenH3 txt:((HtmlBlockH3 / !HtmlBlockCloseH3 .)* { return _chunk.match }) HtmlBlockCloseH3
+HtmlBlockH3 = s:LocMarker HtmlBlockOpenH3 txt:( (HtmlBlockH3 / !HtmlBlockCloseH3 .)* { return _chunk.match } ) HtmlBlockCloseH3
               { d.add(d.elem_pet(t.pmd_H3,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH4 = '<' Spnl ("h4" / "H4") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH4 = '<' Spnl '/' ("h4" / "H4") Spnl '>'
-HtmlBlockH4 = s:LocMarker HtmlBlockOpenH4 txt:((HtmlBlockH4 / !HtmlBlockCloseH4 .)* { return _chunk.match }) HtmlBlockCloseH4
+HtmlBlockH4 = s:LocMarker HtmlBlockOpenH4 txt:( (HtmlBlockH4 / !HtmlBlockCloseH4 .)* { return _chunk.match } ) HtmlBlockCloseH4
               { d.add(d.elem_pet(t.pmd_H4,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH5 = '<' Spnl ("h5" / "H5") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH5 = '<' Spnl '/' ("h5" / "H5") Spnl '>'
-HtmlBlockH5 = s:LocMarker HtmlBlockOpenH5 txt:((HtmlBlockH5 / !HtmlBlockCloseH5 .)* { return _chunk.match }) HtmlBlockCloseH5
+HtmlBlockH5 = s:LocMarker HtmlBlockOpenH5 txt:( (HtmlBlockH5 / !HtmlBlockCloseH5 .)* { return _chunk.match } ) HtmlBlockCloseH5
               { d.add(d.elem_pet(t.pmd_H5,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH6 = '<' Spnl ("h6" / "H6") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH6 = '<' Spnl '/' ("h6" / "H6") Spnl '>'
-HtmlBlockH6 = s:LocMarker HtmlBlockOpenH6 txt:((HtmlBlockH6 / !HtmlBlockCloseH6 .)* { return _chunk.match }) HtmlBlockCloseH6
+HtmlBlockH6 = s:LocMarker HtmlBlockOpenH6 txt:( (HtmlBlockH6 / !HtmlBlockCloseH6 .)* { return _chunk.match } ) HtmlBlockCloseH6
               { d.add(d.elem_pet(t.pmd_H6,s,_chunk.end,txt)); }
 
 HtmlBlockOpenMenu = '<' Spnl ("menu" / "MENU") Spnl HtmlAttribute* '>'
@@ -361,7 +361,7 @@ HtmlBlockInTags = HtmlBlockAddress
                 / HtmlBlockTr
                 / HtmlBlockScript
 
-HtmlBlock = html:(( HtmlBlockInTags / HtmlComment / HtmlBlockSelfClosing ) { return _chunk.match })
+HtmlBlock = html:( ( HtmlBlockInTags / HtmlComment / HtmlBlockSelfClosing ) { return _chunk.match } )
             BlankLine+
             { d.add(d.elem_ct(t.pmd_HTML,_chunk,html)) }
 
@@ -427,8 +427,7 @@ StarLine =      "****" '*'* / Spacechar '*'+ &Spacechar
 UlLine   =      "____" '_'* / Spacechar '_'+ &Spacechar
 
 Emph =      ( EmphStar / EmphUl )
-            { d.add(d.elem_pet(t.pmd_EMPH,_chunk.pos,_chunk.end,
-                    input.substring(_chunk.pos+1,_chunk.end-1))) }
+            { d.add(d.elem_cn(t.pmd_EMPH,_chunk,1)) }
 
 OneStarOpen  =  !StarLine '*' !Spacechar !Newline
 OneStarClose =  !Spacechar !Newline Inline !StrongStar '*'
@@ -445,8 +444,7 @@ EmphUl =    OneUlOpen
             OneUlClose
 
 Strong = ( StrongStar / StrongUl )
-         { d.add(d.elem_pet(t.pmd_STRONG,_chunk.pos,_chunk.end,
-                    input.substring(_chunk.pos+2,_chunk.end-2))) }
+         { d.add(d.elem_cn(t.pmd_STRONG,_chunk,2)) }
 
 TwoStarOpen =   !StarLine "**" !Spacechar !Newline
 TwoStarClose =  !Spacechar !Newline Inline "**"
@@ -581,19 +579,20 @@ RefTitleParens = Spnl '(' ( !(')' Sp Newline / Newline) . )* ')'
 // Starting point for parsing only references:
 References = ( Reference / SkipBlock )*
 
-Ticks1 = ff:( "`" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-Ticks2 = ff:( "``" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-Ticks3 = ff:( "```" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-Ticks4 = ff:( "````" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
-Ticks5 = ff:( "`````" ) !'`' /*{ $$ = elem(t.pmd_NO_TYPE); }*/
+Ticks1 = "`" !'`' { return 1 }
+Ticks2 = "``" !'`' { return 2 }
+Ticks3 = "```" !'`' { return 3 }
+Ticks4 = "````" !'`' { return 4 }
+Ticks5 = "`````" !'`' { return 5 }
 
-Code = ff:( ( s:Ticks1 Sp ( ( !'`' Nonspacechar )+ / !Ticks1 '`'+ / !( Sp Ticks1 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks1
-       / s:Ticks2 Sp ( ( !'`' Nonspacechar )+ / !Ticks2 '`'+ / !( Sp Ticks2 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks2
-       / s:Ticks3 Sp ( ( !'`' Nonspacechar )+ / !Ticks3 '`'+ / !( Sp Ticks3 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks3
-       / s:Ticks4 Sp ( ( !'`' Nonspacechar )+ / !Ticks4 '`'+ / !( Sp Ticks4 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks4
-       / s:Ticks5 Sp ( ( !'`' Nonspacechar )+ / !Ticks5 '`'+ / !( Sp Ticks5 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks5
-       ) )
-       /*{ ADD(elem_s(t.pmd_CODE)); }*/
+Code = cnt:(
+         ( s:Ticks1 Sp ( ( !'`' Nonspacechar )+ / !Ticks1 '`'+ / !( Sp Ticks1 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks1 ) { return s }
+       / ( s:Ticks2 Sp ( ( !'`' Nonspacechar )+ / !Ticks2 '`'+ / !( Sp Ticks2 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks2 ) { return s }
+       / ( s:Ticks3 Sp ( ( !'`' Nonspacechar )+ / !Ticks3 '`'+ / !( Sp Ticks3 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks3 ) { return s }
+       / ( s:Ticks4 Sp ( ( !'`' Nonspacechar )+ / !Ticks4 '`'+ / !( Sp Ticks4 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks4 ) { return s }
+       / ( s:Ticks5 Sp ( ( !'`' Nonspacechar )+ / !Ticks5 '`'+ / !( Sp Ticks5 ) ( Spacechar / Newline !BlankLine ) )+ Sp Ticks5 ) { return s }
+       )
+       { d.add(d.elem_cn(t.pmd_CODE,_chunk,cnt)); }
 
 RawHtml =   (HtmlComment / HtmlBlockScript / HtmlTag)
 

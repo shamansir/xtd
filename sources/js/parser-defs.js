@@ -294,6 +294,7 @@ function elem(x,c)         { return make_element(g_state,x,c) } // type and chun
 function elem_c(x,c)       { return make_element_i(g_state,x,c.pos,c.end,c.match) } // type, chunk (pos,end,text)
 function elem_cz(x,c)      { return make_element_i(g_state,x,c.pos,c.end) } // type, chunk (pos,end)
 function elem_ct(x,c,t)    { return make_element_i(g_state,x,c.pos,c.end,t) } // type, chunk (pos,end) and text
+function elem_cn(x,c,n)    { return make_element_i(g_state,x,c.pos,c.end,c.match.substring(n,c.match.length-n)) } // type, chunk (pos,end) and padding
 function elem_pe(x,p,e)    { return make_element_i(g_state,x,p,e) } // type, pos, end (no text)
 function elem_pet(x,p,e,t) { return make_element_i(g_state,x,p,e,t) } // type, pos, end, text
 function elem_z(x)         { return make_element_i(g_state,x,0,0) } // type only
@@ -309,6 +310,7 @@ module.exports = {
     'elem_c': elem_c,
     'elem_cz': elem_cz,
     'elem_ct': elem_ct,
+    'elem_cn': elem_cn,
     'elem_pe': elem_pe,
     'elem_pet': elem_pet,
     'elem_z': elem_z,

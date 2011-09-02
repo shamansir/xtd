@@ -14,7 +14,7 @@ With __two lines__ of text
 
 # And one
 
-Some **paragraph** of _text_
+Some **paragraph** of _text_ and some `code` inside, yep?
 
 Woo-Hoo
 -------
