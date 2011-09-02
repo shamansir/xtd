@@ -7,7 +7,7 @@ var pegPath = process.cwd() + '/../peg';
 try {
     var parser = PEG.buildParser(
                   fs.readFileSync(pegPath + '/markdown.pegjs', 'utf-8'));
-    var testContent = fs.readFileSync(pegPath + '/mdown-test/just-headings.md', 'utf-8');
+    var testContent = fs.readFileSync(pegPath + '/mdown-test/progressing.md', 'utf-8');
 
     var result = parser.parse(testContent);
     console.log('=====');

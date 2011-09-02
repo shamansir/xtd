@@ -187,6 +187,8 @@ ListBlockLine = !BlankLine
 // Parsers for different kinds of block-level HTML content.
 // This is repetitive due to constraints of PEG grammar.
 
+// TODO: add "table"..
+
 HtmlBlockOpenAddress = '<' Spnl ("address" / "ADDRESS") Spnl HtmlAttribute* '>'
 HtmlBlockCloseAddress = '<' Spnl '/' ("address" / "ADDRESS") Spnl '>'
 HtmlBlockAddress = HtmlBlockOpenAddress (HtmlBlockAddress / !HtmlBlockCloseAddress .)* HtmlBlockCloseAddress
@@ -221,33 +223,33 @@ HtmlBlockForm = HtmlBlockOpenForm (HtmlBlockForm / !HtmlBlockCloseForm .)* HtmlB
 
 HtmlBlockOpenH1 = '<' Spnl ("h1" / "H1") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH1 = '<' Spnl '/' ("h1" / "H1") Spnl '>'
-HtmlBlockH1 = ff:( s:LocMarker HtmlBlockOpenH1 (HtmlBlockH1 / !HtmlBlockCloseH1 .)* HtmlBlockCloseH1 )
-                { ADD(elem_s(t.pmd_H1,s,_end)); }
+HtmlBlockH1 = s:LocMarker HtmlBlockOpenH1 txt:((HtmlBlockH1 / !HtmlBlockCloseH1 .)* { return _chunk.match }) HtmlBlockCloseH1
+              { d.add(d.elem_pet(t.pmd_H1,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH2 = '<' Spnl ("h2" / "H2") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH2 = '<' Spnl '/' ("h2" / "H2") Spnl '>'
-HtmlBlockH2 = ff:( s:LocMarker HtmlBlockOpenH2 (HtmlBlockH2 / !HtmlBlockCloseH2 .)* HtmlBlockCloseH2 )
-                { ADD(elem_s(t.pmd_H2,s,_end)); }
+HtmlBlockH2 = s:LocMarker HtmlBlockOpenH2 txt:((HtmlBlockH2 / !HtmlBlockCloseH2 .)* { return _chunk.match }) HtmlBlockCloseH2
+              { d.add(d.elem_pet(t.pmd_H2,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH3 = '<' Spnl ("h3" / "H3") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH3 = '<' Spnl '/' ("h3" / "H3") Spnl '>'
-HtmlBlockH3 = ff:( s:LocMarker HtmlBlockOpenH3 (HtmlBlockH3 / !HtmlBlockCloseH3 .)* HtmlBlockCloseH3 )
-                { ADD(elem_s(t.pmd_H3,s,_end)); }
+HtmlBlockH3 = s:LocMarker HtmlBlockOpenH3 txt:((HtmlBlockH3 / !HtmlBlockCloseH3 .)* { return _chunk.match }) HtmlBlockCloseH3
+              { d.add(d.elem_pet(t.pmd_H3,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH4 = '<' Spnl ("h4" / "H4") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH4 = '<' Spnl '/' ("h4" / "H4") Spnl '>'
-HtmlBlockH4 = ff:( s:LocMarker HtmlBlockOpenH4 (HtmlBlockH4 / !HtmlBlockCloseH4 .)* HtmlBlockCloseH4 )
-                { ADD(elem_s(t.pmd_H4,s,_end)); }
+HtmlBlockH4 = s:LocMarker HtmlBlockOpenH4 txt:((HtmlBlockH4 / !HtmlBlockCloseH4 .)* { return _chunk.match }) HtmlBlockCloseH4
+              { d.add(d.elem_pet(t.pmd_H4,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH5 = '<' Spnl ("h5" / "H5") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH5 = '<' Spnl '/' ("h5" / "H5") Spnl '>'
-HtmlBlockH5 = ff:( s:LocMarker HtmlBlockOpenH5 (HtmlBlockH5 / !HtmlBlockCloseH5 .)* HtmlBlockCloseH5 )
-                { ADD(elem_s(t.pmd_H5,s,_end)); }
+HtmlBlockH5 = s:LocMarker HtmlBlockOpenH5 txt:((HtmlBlockH5 / !HtmlBlockCloseH5 .)* { return _chunk.match }) HtmlBlockCloseH5
+              { d.add(d.elem_pet(t.pmd_H5,s,_chunk.end,txt)); }
 
 HtmlBlockOpenH6 = '<' Spnl ("h6" / "H6") Spnl HtmlAttribute* '>'
 HtmlBlockCloseH6 = '<' Spnl '/' ("h6" / "H6") Spnl '>'
-HtmlBlockH6 = ff:( s:LocMarker HtmlBlockOpenH6 (HtmlBlockH6 / !HtmlBlockCloseH6 .)* HtmlBlockCloseH6 )
-                { ADD(elem_s(t.pmd_H6,s,_end)); }
+HtmlBlockH6 = s:LocMarker HtmlBlockOpenH6 txt:((HtmlBlockH6 / !HtmlBlockCloseH6 .)* { return _chunk.match }) HtmlBlockCloseH6
+              { d.add(d.elem_pet(t.pmd_H6,s,_chunk.end,txt)); }
 
 HtmlBlockOpenMenu = '<' Spnl ("menu" / "MENU") Spnl HtmlAttribute* '>'
 HtmlBlockCloseMenu = '<' Spnl '/' ("menu" / "MENU") Spnl '>'
@@ -359,8 +361,9 @@ HtmlBlockInTags = HtmlBlockAddress
                 / HtmlBlockTr
                 / HtmlBlockScript
 
-HtmlBlock = ( HtmlBlockInTags / HtmlComment / HtmlBlockSelfClosing )
+HtmlBlock = html:(( HtmlBlockInTags / HtmlComment / HtmlBlockSelfClosing ) { return _chunk.match })
             BlankLine+
+            { d.add(d.elem_ct(t.pmd_HTML,_chunk,html)) }
 
 HtmlBlockSelfClosing = '<' Spnl HtmlBlockType Spnl HtmlAttribute* '/' Spnl '>'
 
@@ -611,6 +614,7 @@ SpecialChar =   '*' / '_' / '`' / '&' / '[' / ']' / '(' / ')' / '<' / '!' / '#' 
 NormalChar =    !( SpecialChar / Spacechar / Newline ) .
 // Not used anywhere in grammar:
 // NonAlphanumeric = [\000-\057\072-\100\133-\140\173-\177]
+// TODO: check if that numbers fit
 Alphanumeric = [0-9A-Za-z] /* / '\200' / '\201' / '\202' / '\203' / '\204' / '\205' / '\206' / '\207' / '\210' / '\211' / '\212' / '\213' / '\214' / '\215' / '\216' / '\217' / '\220' / '\221' / '\222' / '\223' / '\224' / '\225' / '\226' / '\227' / '\230' / '\231' / '\232' / '\233' / '\234' / '\235' / '\236' / '\237' / '\240' / '\241' / '\242' / '\243' / '\244' / '\245' / '\246' / '\247' / '\250' / '\251' / '\252' / '\253' / '\254' / '\255' / '\256' / '\257' / '\260' / '\261' / '\262' / '\263' / '\264' / '\265' / '\266' / '\267' / '\270' / '\271' / '\272' / '\273' / '\274' / '\275' / '\276' / '\277' / '\300' / '\301' / '\302' / '\303' / '\304' / '\305' / '\306' / '\307' / '\310' / '\311' / '\312' / '\313' / '\314' / '\315' / '\316' / '\317' / '\320' / '\321' / '\322' / '\323' / '\324' / '\325' / '\326' / '\327' / '\330' / '\331' / '\332' / '\333' / '\334' / '\335' / '\336' / '\337' / '\340' / '\341' / '\342' / '\343' / '\344' / '\345' / '\346' / '\347' / '\350' / '\351' / '\352' / '\353' / '\354' / '\355' / '\356' / '\357' / '\360' / '\361' / '\362' / '\363' / '\364' / '\365' / '\366' / '\367' / '\370' / '\371' / '\372' / '\373' / '\374' / '\375' / '\376' / '\377' */
 AlphanumericAscii = [A-Za-z0-9]
 

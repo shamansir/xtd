@@ -124,6 +124,7 @@ e.pmd_EXT_NO_EMPHASIS_IN_QUOTES = 256;
 
 // Other Extentions
 e.pmd_EXT_HASHBANG_CODE_LANG = 512;
+e.pmd_EXT_DOC_META_INFO = 1024;
 
 e.pmd_EXTENSIONS = e.pmd_EXT_FOOTNOTES
                 /* | e.pmd_EXT_DEF_LISTS
@@ -142,7 +143,8 @@ e.ext_name = function(ext) {
         case e.pmd_EXT_ALT_TABLES:            return "EXT_ALT_TABLES";
         case e.pmd_EXT_NO_EMPHASIS_IN_QUOTES: return "EXT_NO_EMPH_IN_QUOTES";
         case e.pmd_EXT_HASHBANG_CODE_LANG:    return "EXT_HASHBANG_CODE_LANG";
-        default:                            return "?";
+        case e.pmd_DOC_EXT_META_INFO:         return "EXT_DOC_META_INFO";
+        default:                              return "?";
     }
 }
 
@@ -193,6 +195,8 @@ g_state.toString = function() {
     var result = '';
 
 } */
+
+// TODO: think about indentation, allow 3-spaces indent for lists?
 
 // FUNCTIONS ===================================================================
 
