@@ -70,9 +70,14 @@ And no-space line
     * I suppose
         * Yep?
  * 1. item
-   2. item
+    2. item 2
+    3. item 3
 
-   3. item
+    4. item
+    5. item
+
+ * one item before last
+
  * last item
 
 
@@ -84,6 +89,14 @@ With several lines,alhtough
 
 256. Woo
 9. Back
+
+12. Hey-hey
+
+    * A bullet-list inside
+    * Here
+    * And here
+
+ 13. simple item
 
 * And
 * One
