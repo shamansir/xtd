@@ -65,6 +65,7 @@ And no-space line
     Hey-hey
  * + item
  * 1. item
+   2. item
  * yes
  * here's two levels
     * next level
@@ -75,7 +76,7 @@ And no-space line
 
 1. Ordered list
 With several lines,alhtough
- 1. An asterix * inside
+ 1. An asterix * and *strong* inside
  1. One more item
 
 256. Woo

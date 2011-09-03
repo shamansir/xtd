@@ -111,15 +111,11 @@ Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
 
 Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
 
-BulletList = &Bullet (ListTightBullet / ListLooseBullet)
-             {
-               d.add(d.elem_c(t.pmd_LIST_BULLET,_chunk));
-             }
+BulletList = &Bullet  data:(ListTightBullet / ListLooseBullet)
+             { d.add(d.elem_c(t.pmd_LIST_BULLET,_chunk),data) }
 
-OrderedList = &Enumerator (ListTightEnumerator / ListLooseEnumerator)
-             {
-               d.add(d.elem_c(t.pmd_LIST_ENUMERATOR,_chunk));
-             }
+OrderedList = &Enumerator data:(ListTightEnumerator / ListLooseEnumerator)
+              { d.add(d.elem_c(t.pmd_LIST_ENUMERATOR,_chunk),data) }
 
 ListTightBullet = data:( ( ListItemTightBullet )+ )
                   BlankLine* !(Bullet / Enumerator)
@@ -134,37 +130,52 @@ ListLooseBullet = ( data:( i:ListItemBullet BlankLine* { return i } )+ ) { retur
 ListLooseEnumerator = ( data:( i:ListItemEnumerator BlankLine* { return i } )+ ) { return data }
 
 ListItemBullet = Bullet
-                 ListBlock
-                 ( ListContinuationBlock )*
+                 start:ListBlock
+                 cont:( ( ListContinuationBlock )* )
+                 { for (var i = 0, result = [start];
+                        i < cont.length; i++) result.push(cont[i]);
+                   return result; }
 
 ListItemEnumerator = Enumerator
-                     ListBlock
-                     ( ListContinuationBlock )*
+                     start:ListBlock
+                     cont:( ( ListContinuationBlock )* )
+                     { for (var i = 0, result = [start];
+                            i < cont.length; i++) result.push(cont[i]);
+                       return result; }
 
 ListItemTightBullet =
                 Bullet
-                ListBlock
-                ( !BlankLine
-                  ListContinuationBlock )*
+                start:ListBlock
+                cont:( ( !BlankLine
+                         i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
+                { for (var i = 0, result = [start];
+                       i < cont.length; i++) result.push(cont[i]);
+                  return result; }
 
 ListItemTightEnumerator =
                 Enumerator
-                ListBlock
-                ( !BlankLine
-                  ListContinuationBlock )*
+                start:ListBlock
+                cont:( ( !BlankLine
+                         i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
+                 { for (var i = 0, result = [start];
+                        i < cont.length; i++) result.push(cont[i]);
+                   return result; }
 
-ListBlock = !BlankLine Line
-            ( ListBlockLine )*
+ListBlock = !BlankLine start:Line
+            cont:( ( ListBlockLine )* )
+            { return start + cont.join(''); }
 
 ListContinuationBlock = ( BlankLine* )
-                        ( Indent ListBlock )+
+                        txt:( ( Indent i:ListBlock { return i } )+ )
+                        { return txt.join(''); }
 
 ListBlockLine = !BlankLine
                 !( Indent? (Bullet / Enumerator) )
                 !HorizontalRule
-                OptionallyIndentedLine
+                txt:OptionallyIndentedLine
+                { return txt }
 
 // Parsers for different kinds of block-level HTML content.
 // This is repetitive due to constraints of PEG grammar.
