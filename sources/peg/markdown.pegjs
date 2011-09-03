@@ -109,40 +109,57 @@ HorizontalRule = NonindentSpace
 
 Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
 
-BulletList = &Bullet (ListTight / ListLoose)
+Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
+
+BulletList = &Bullet (ListTightBullet / ListLooseBullet)
              {
                d.add(d.elem_c(t.pmd_LIST_BULLET,_chunk));
              }
 
-ListTight = data:( ( ListItemTight )+ )
-            BlankLine* !(Bullet / Enumerator)
-            { return data }
+OrderedList = &Enumerator (ListTightEnumerator / ListLooseEnumerator)
+             {
+               d.add(d.elem_c(t.pmd_LIST_ENUMERATOR,_chunk));
+             }
 
-ListLoose = ( data:( i:ListItem BlankLine* { return i } )+ ) { return data }
+ListTightBullet = data:( ( ListItemTightBullet )+ )
+                  BlankLine* !(Bullet / Enumerator)
+                  { return data }
 
-ListItem =  ( Bullet / Enumerator )
-            ListBlock
-            ( ListContinuationBlock )*
+ListTightEnumerator = data:( ( ListItemTightEnumerator )+ )
+                      BlankLine* !(Bullet / Enumerator)
+                      { return data }
 
-ListItemTight =
-            ( Bullet / Enumerator )
-            ListBlock
-            ( !BlankLine
-              ListContinuationBlock )*
-            !ListContinuationBlock
+ListLooseBullet = ( data:( i:ListItemBullet BlankLine* { return i } )+ ) { return data }
+
+ListLooseEnumerator = ( data:( i:ListItemEnumerator BlankLine* { return i } )+ ) { return data }
+
+ListItemBullet = Bullet
+                 ListBlock
+                 ( ListContinuationBlock )*
+
+ListItemEnumerator = Enumerator
+                     ListBlock
+                     ( ListContinuationBlock )*
+
+ListItemTightBullet =
+                Bullet
+                ListBlock
+                ( !BlankLine
+                  ListContinuationBlock )*
+                !ListContinuationBlock
+
+ListItemTightEnumerator =
+                Enumerator
+                ListBlock
+                ( !BlankLine
+                  ListContinuationBlock )*
+                !ListContinuationBlock
 
 ListBlock = !BlankLine Line
             ( ListBlockLine )*
 
 ListContinuationBlock = ( BlankLine* )
                         ( Indent ListBlock )+
-
-Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
-
-OrderedList = &Enumerator (ListTight / ListLoose)
-             {
-               d.add(d.elem_c(t.pmd_LIST_ENUMERATOR,_chunk));
-             }
 
 ListBlockLine = !BlankLine
                 !( Indent? (Bullet / Enumerator) )
