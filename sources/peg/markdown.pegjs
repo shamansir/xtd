@@ -108,76 +108,41 @@ HorizontalRule = NonindentSpace
                  { d.add(d.elem_pe(t.pmd_HRULE,s1,s2)) }
 
 Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
-         { d.add(d.elem_pe(t.pmd_LIST_BULLET,s,s+1)); }
 
 BulletList = &Bullet (ListTight / ListLoose)
+             {
+               d.add(d.elem_c(t.pmd_LIST_BULLET,_chunk));
+             }
 
-ListTight = a:StartList
-            ( ListItemTight
-              /*{ var el = mk_notype();
-                el.children = $$;
-                a = cons(el, a);
-              }*/ )+
+ListTight = data:( ( ListItemTight )+ )
             BlankLine* !(Bullet / Enumerator)
-            /*{ var cur = a;
-              while (cur != null) {
-                  var rawlist = elem_f(t.pmd_RAW_LIST);
-                  rawlist.children = reverse(cur.children);
-                  ADD(rawlist);
-                  cur = cur.next;
-              }
-            }*/
+            { return data }
 
-ListLoose = a:StartList
-            ( b:ListItem BlankLine*
-              /*{ b = cons(etext("\n\n"), b); // In loose list, \n\n added to end of each element
-                var el = mk_notype();
-                el.children = b;
-                a = cons(el, a);
-              }*/ )+
-            /*{ var cur = a;
-              while (cur != null) {
-                  var rawlist = elem_f(t.pmd_RAW_LIST);
-                  rawlist.children = reverse(cur.children);
-                  ADD(rawlist);
-                  cur = cur->next;
-              }
-            }*/
+ListLoose = ( data:( i:ListItem BlankLine* { return i } )+ ) { return data }
 
 ListItem =  ( Bullet / Enumerator )
-            a:StartList
-            ListBlock /*{ a = cons($$, a); }*/
-            ( ListContinuationBlock /*{ a = cons($$, a); }*/ )*
-            /*{ $$ = a; return $$; }*/
+            ListBlock
+            ( ListContinuationBlock )*
 
 ListItemTight =
             ( Bullet / Enumerator )
-            a:StartList
-            ListBlock /*{ a = cons($$, a); }*/
+            ListBlock
             ( !BlankLine
-              ListContinuationBlock /*{ a = cons($$, a); }*/ )*
+              ListContinuationBlock )*
             !ListContinuationBlock
-            /*{ $$ = a; return $$; }*/
 
-ListBlock = a:StartList
-            !BlankLine Line /*{ a = cons($$, a); }*/
-            ( ListBlockLine /*{ a = cons(elem(t.pmd_RAW), a); }*/ )*
-            /*{ $$ = a;  return $$; }*/
+ListBlock = !BlankLine Line
+            ( ListBlockLine )*
 
-ListContinuationBlock = a:StartList
-                        ( ff:( BlankLine* )
-                          /*{ if (fetch.length == 0)
-                                a = cons(elem(t.pmd_SEPARATOR,_pos,_end), a);
-                            else
-                                a = cons(elem(t.pmd_RAW),_pos,_end, a);
-                          }*/ )
-                        ( Indent ListBlock /*{ a = cons($$, a); }*/ )+
-                        /*{ $$ = a; return $$; }*/
+ListContinuationBlock = ( BlankLine* )
+                        ( Indent ListBlock )+
 
-Enumerator = NonindentSpace ff:( [0-9]+ '.' /*{ _apos = _pos; _aend = _end }*/ ) Spacechar+
-             /*{ ADD(elem(t.pmd_LIST_ENUMERATOR,_apos,_aend)); }*/
+Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
 
 OrderedList = &Enumerator (ListTight / ListLoose)
+             {
+               d.add(d.elem_c(t.pmd_LIST_ENUMERATOR,_chunk));
+             }
 
 ListBlockLine = !BlankLine
                 !( Indent? (Bullet / Enumerator) )
