@@ -33,6 +33,10 @@ djjdjd
   With several lines
 > Yes it is
 
+>> Two-level bloquote
+
+>>> Three-level blockquote
+
 > Continues here
 
 <h5>OHOHO</h5>
@@ -42,14 +46,30 @@ djjdjd
 <!-- comment -->
 
 
-*  Some text, multiline text though, Some text, multiline text *though*, Some text, multiline text though, &amp; Some text, &#124; multiline text though
+  * Some text, multiline text though, Some text, multiline text *though*, Some text, multiline text though, &amp; Some text, &#124; multiline text though
 And no-space line
 
-      May be a heading?
+    May be a heading?
 
     -----
 
     Yes?
+
+  * Next item
+    With
+  Several
+    Lines
+
+  * Last item
+
+    Hey-hey
+ * + item
+ * item
+ * yes
+ * here's two levels
+    * next level
+    * I suppose
+        * Yep?
 
 
 > ### Header

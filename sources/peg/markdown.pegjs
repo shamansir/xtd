@@ -73,18 +73,16 @@ SetextHeading2 =  &(RawLine SetextBottom2)
 
 Heading = SetextHeading / AtxHeading
 
-// TODO: allow inherited blockquotes?
+// TODO: allow double-triple blockquotes?
 BlockQuote = lines:BlockQuoteRaw
              { var text = '';
-               var w = 0;
                for (var i = 0; i < lines.length; i++) {
-                   w = lines[i][0];
                    text += lines[i][1];
                }
-               d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),w);
+               d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),lines);
              }
 
-BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk.match.length } )
+BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk } )
                          start:( Line { return _chunk.match } )
                          next:( !'>' !BlankLine Line { return _chunk.match } )*
                          stop:( BlankLine { return '\n' } )*

@@ -220,8 +220,8 @@ function map_elems(first, func) {
 function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
            elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~') : ' no-text') +
-           ((elm.children != null) ? ' has-children' : '') +
-           ((elm.data != null) ? (' @@ ' + elm.data) : '') + '}';
+           ((elm.children != null) ? ' has-children' : '') /*+
+           ((elm.data != null) ? (' @@ ' + elm.data) : '') + '}'*/;
 }
 
 function _elem_info() { return elem_info(this); }
