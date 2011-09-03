@@ -41,7 +41,7 @@ Block =     BlankLine*
 
 Para =      NonindentSpace txt:Inlines BlankLine+ { d.add(d.elem_ct(t.pmd_PARA,_chunk,txt)); }
 
-Plain =     Inlines /* { console.log('plain: ', _chunk.match) } */
+Plain =     Inlines
 
 AtxInline = !Newline !(Sp? '#'* Sp Newline) Inline
 
@@ -82,7 +82,7 @@ BlockQuote = lines:BlockQuoteRaw
                d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),lines);
              }
 
-BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk } )
+BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk.match } )
                          start:( Line { return _chunk.match } )
                          next:( !'>' !BlankLine Line { return _chunk.match } )*
                          stop:( BlankLine { return '\n' } )*
@@ -624,7 +624,6 @@ StartList = &.
             /*{ $$ = NULL; }*/
 
 Line =  RawLine { return _chunk.match }
-        /*{ d.add(d.elem_c(t.pmd_RAW,_chunk)) }*/
 
 RawLine = ( (!'\r' !'\n' .)* Newline / .+ Eof )
 

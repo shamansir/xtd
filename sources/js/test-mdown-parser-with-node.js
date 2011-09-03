@@ -1,5 +1,4 @@
 var fs = require('fs');
-var util = require('util');
 var PEG = require('pegjs');
 
 var pegPath = process.cwd() + '/../peg';

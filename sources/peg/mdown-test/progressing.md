@@ -64,13 +64,16 @@ And no-space line
 
     Hey-hey
  * + item
- * 1. item
-   2. item
  * yes
  * here's two levels
     * next level
     * I suppose
         * Yep?
+ * 1. item
+   2. item
+
+   3. item
+ * last item
 
 
 

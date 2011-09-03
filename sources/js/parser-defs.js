@@ -2,6 +2,8 @@
 // C++ code author is Ali Rantakari (http://hasseg.org/peg-markdown-highlight/)
 // the C++ file used as source is located here: http://hasseg.org/gitweb?p=peg-markdown-highlight.git;a=blob;f=pmh_parser_head.c;h=51528032723b9fc0eed0e854abbe2847b9d127b4;hb=HEAD
 
+var util = require('util');
+
 // ELEMENTS TYPES ==============================================================
 
 var t = new Object(null);
@@ -200,6 +202,7 @@ g_state.toString = function() {
 /* g_state.spec(text) {
     var result = '';
 
+
 } */
 
 // TODO: think about indentation, allow 3-spaces indent for lists?
@@ -221,7 +224,7 @@ function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
            elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~') : ' no-text') +
            ((elm.children != null) ? ' has-children' : '') +
-           ((elm.data != null) ? (' @@ ' + elm.data) : '') + '}';
+           ((elm.data != null) ? (' @@ ' + util.inspect(elm.data)) : '') + '}';
 }
 
 function _elem_info() { return elem_info(this); }
