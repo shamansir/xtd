@@ -76,9 +76,8 @@ Heading = SetextHeading / AtxHeading
 // TODO: allow double-triple blockquotes?
 BlockQuote = lines:BlockQuoteRaw
              { var text = '';
-               for (var i = 0; i < lines.length; i++) {
+               for (var i = 0; i < lines.length; i++)
                    text += lines[i][1];
-               }
                d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),lines);
              }
 
@@ -112,10 +111,20 @@ Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
 Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
 
 BulletList = &Bullet  data:(ListTightBullet / ListLooseBullet)
-             { d.add(d.elem_c(t.pmd_LIST_BULLET,_chunk),data) }
+             { var text = '';
+               for (var i = 0; i < data.length; i++)
+                   for (var j = 0; j < data[i].length; j++)
+                       text += data[i][j];
+
+               d.add(d.elem_ct(t.pmd_LIST_BULLET,_chunk,text),data) }
 
 OrderedList = &Enumerator data:(ListTightEnumerator / ListLooseEnumerator)
-              { d.add(d.elem_c(t.pmd_LIST_ENUMERATOR,_chunk),data) }
+              { var text = '';
+                for (var i = 0; i < data.length; i++)
+                   for (var j = 0; j < data[i].length; j++)
+                       text += data[i][j];
+
+                d.add(d.elem_ct(t.pmd_LIST_ENUMERATOR,_chunk,text),data) }
 
 ListTightBullet = data:( ( ListItemTightBullet )+ )
                   BlankLine* !(Bullet / Enumerator)
