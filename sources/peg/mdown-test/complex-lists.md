@@ -1,16 +1,18 @@
 * list
-* at
+*  at
 * start
      With
     * another
     * list
     * inside
      * shifted one
- *  1. Let
-    2. Here
+ *    1. Let
+     2. Here
     3. Be
      4. Numbers
-        List continues
+          List continues
+
+         With another paragraph
 * more
 
 ----
