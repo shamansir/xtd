@@ -14,6 +14,22 @@
    var d = require(process.cwd() + '/parser-defs');
    var e = d.exts;
    var t = d.types;
+
+   function packListData(start, cont) {
+       for (var i = 0, result = [start]; i < cont.length; i++)
+           for (var j = 0; j < cont[i].length; j++)
+               result.push(cont[i][j]);
+       return result;
+   }
+
+   function extractListText(data) {
+       var text = '';
+       for (var i = 0; i < data.length; i++)
+           for (var j = 0; j < data[i].length; j++)
+               text += data[i][j][1];
+       return text;
+   }
+
 }
 
 start =     Doc { return d.state; }
@@ -111,20 +127,10 @@ Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
 Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
 
 BulletList = &Bullet  data:(ListTightBullet / ListLooseBullet)
-             { var text = '';
-               for (var i = 0; i < data.length; i++)
-                   for (var j = 0; j < data[i].length; j++)
-                       text += data[i][j];
-
-               d.add(d.elem_ct(t.pmd_LIST_BULLET,_chunk,text),data) }
+             { d.add(d.elem_ct(t.pmd_LIST_BULLET,_chunk,extractListText(data)),data) }
 
 OrderedList = &Enumerator data:(ListTightEnumerator / ListLooseEnumerator)
-              { var text = '';
-                for (var i = 0; i < data.length; i++)
-                   for (var j = 0; j < data[i].length; j++)
-                       text += data[i][j];
-
-                d.add(d.elem_ct(t.pmd_LIST_ENUMERATOR,_chunk,text),data) }
+              { d.add(d.elem_ct(t.pmd_LIST_ENUMERATOR,_chunk,extractListText(data)),data) }
 
 ListTightBullet = data:( ( ListItemTightBullet )+ )
                   BlankLine* !(Bullet / Enumerator)
@@ -141,16 +147,12 @@ ListLooseEnumerator = ( data:( i:ListItemEnumerator BlankLine* { return i } )+ )
 ListItemBullet = Bullet
                  start:ListBlock
                  cont:( ( ListContinuationBlock )* )
-                 { for (var i = 0, result = [start];
-                        i < cont.length; i++) result.push(cont[i]);
-                   return result; }
+                 { return packListData(start, cont) }
 
 ListItemEnumerator = Enumerator
                      start:ListBlock
                      cont:( ( ListContinuationBlock )* )
-                     { for (var i = 0, result = [start];
-                            i < cont.length; i++) result.push(cont[i]);
-                       return result; }
+                     { return packListData(start, cont) }
 
 ListItemTightBullet =
                 Bullet
@@ -158,9 +160,7 @@ ListItemTightBullet =
                 cont:( ( !BlankLine
                          i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
-                { for (var i = 0, result = [start];
-                       i < cont.length; i++) result.push(cont[i]);
-                  return result; }
+                 { return packListData(start, cont) }
 
 ListItemTightEnumerator =
                 Enumerator
@@ -168,17 +168,15 @@ ListItemTightEnumerator =
                 cont:( ( !BlankLine
                          i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
-                 { for (var i = 0, result = [start];
-                        i < cont.length; i++) result.push(cont[i]);
-                   return result; }
+                 { return packListData(start, cont) }
 
-ListBlock = !BlankLine start:Line
+ListBlock = !BlankLine s:LocMarker start:Line
             cont:( ( ListBlockLine )* )
-            { return start + cont.join(''); }
+            { return [s, start + cont.join('')]; }
 
 ListContinuationBlock = ( BlankLine* )
                         txt:( ( Indent i:ListBlock { return i } )+ )
-                        { return txt.join(''); }
+                        { return txt; }
 
 ListBlockLine = !BlankLine
                 !( Indent? (Bullet / Enumerator) )
@@ -376,6 +374,7 @@ HtmlBlockType = "address" / "blockquote" / "center" / "dir" / "div" / "dl" / "fi
                 "H4" / "H5" / "H6" / "HR" / "ISINDEX" / "MENU" / "NOFRAMES" / "NOSCRIPT" / "OL" / "P" / "PRE" / "TABLE" /
                 "UL" / "DD" / "DT" / "FRAMESET" / "LI" / "TBODY" / "TD" / "TFOOT" / "TH" / "THEAD" / "TR" / "SCRIPT"
 
+// TODO: store style?
 StyleOpen =     '<' Spnl ("style" / "STYLE") Spnl HtmlAttribute* '>'
 StyleClose =    '<' Spnl '/' ("style" / "STYLE") Spnl '>'
 InStyleTags =   StyleOpen (!StyleClose .)* StyleClose
