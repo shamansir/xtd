@@ -224,7 +224,7 @@ function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
            elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~') : ' no-text') +
            ((elm.children != null) ? ' has-children' : '') +
-           ((elm.data != null) ? (' @@ ' + util.inspect(elm.data)) : '') + '}';
+           ((elm.data != null) ? (' @@ ' + util.inspect(elm.data,false,null)) : '') + '}';
 }
 
 function _elem_info() { return elem_info(this); }

@@ -23,10 +23,11 @@
    }
 
    function extractListText(data) {
-       var text = '';
-       for (var i = 0; i < data.length; i++)
-           for (var j = 0; j < data[i].length; j++)
-               text += data[i][j][1];
+       for (var i = 0, text = ''; i < data.length; i++) {
+           for (var j = 0, src = data[i][2]; j < src.length; j++)
+               for (var k = 0; k < src[j].length; k++)
+                   text += src[j][k];
+       }
        return text;
    }
 
@@ -144,35 +145,41 @@ ListLooseBullet = ( data:( i:ListItemBullet BlankLine* { return i } )+ ) { retur
 
 ListLooseEnumerator = ( data:( i:ListItemEnumerator BlankLine* { return i } )+ ) { return data }
 
-ListItemBullet = Bullet
+ListItemBullet = s:LocMarker Bullet
+                 o:LocMarker
                  start:ListBlock
                  cont:( ( ListContinuationBlock )* )
-                 { return packListData(start, cont) }
+                 { return [s,(o-s),packListData(start, cont)] }
 
-ListItemEnumerator = Enumerator
+ListItemEnumerator = s:LocMarker Enumerator
+                     o:LocMarker
                      start:ListBlock
                      cont:( ( ListContinuationBlock )* )
-                     { return packListData(start, cont) }
+                     { return [s,(o-s),packListData(start, cont)] }
 
 ListItemTightBullet =
-                Bullet
+                s:LocMarker Bullet
+                o:LocMarker
                 start:ListBlock
                 cont:( ( !BlankLine
                          i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
-                 { return packListData(start, cont) }
+                { return [s,(o-s),packListData(start, cont)] }
 
 ListItemTightEnumerator =
-                Enumerator
+                s:LocMarker Enumerator
+                o:LocMarker
                 start:ListBlock
                 cont:( ( !BlankLine
                          i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
-                 { return packListData(start, cont) }
+                { return [s,(o-s),packListData(start, cont)] }
 
-ListBlock = !BlankLine s:LocMarker start:Line
+ListBlock = !BlankLine start:Line
             cont:( ( ListBlockLine )* )
-            { return [s, start + cont.join('')]; }
+            { for (var i = 0, joined = [start]; i < cont.length; i++)
+                  joined.push(cont[i]);
+              return joined; }
 
 ListContinuationBlock = ( BlankLine* )
                         txt:( ( Indent i:ListBlock { return i } )+ )
