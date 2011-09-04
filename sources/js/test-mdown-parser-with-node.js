@@ -1,16 +1,18 @@
 var fs = require('fs');
 var PEG = require('pegjs');
 
-require('./parser-defs');
+var pegPath = process.cwd() + '/../peg';
 
 try {
     var parser = PEG.buildParser(
-                  fs.readFileSync('/home/shamansir/Workspace/xtd/sources/peg/markdown.pegjs', 'utf-8'));
-    var testContent = fs.readFileSync('/home/shamansir/Worktable/peg-markdown-highlight/testfiles/bom.md', 'utf-8');
+                  fs.readFileSync(pegPath + '/markdown.pegjs', 'utf-8'));
+    var testContent = fs.readFileSync(pegPath + '/mdown-test/complex-lists.md', 'utf-8');
 
-   var result = parser.parse(testContent);
-   console.log(result);
+    var result = parser.parse(testContent);
+    console.log('=====');
+    console.log('result:', result.toString());
 } catch(e) {
-   console.log(e);
+    console.log('error',e);
+    throw e;
 }
 
