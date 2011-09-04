@@ -92,17 +92,17 @@ Heading = SetextHeading / AtxHeading
 
 // TODO: allow double-triple blockquotes?
 BlockQuote = lines:BlockQuoteRaw
-             { var text = '';
-               for (var i = 0; i < lines.length; i++)
-                   text += lines[i][1];
+             { for (var i = 0, text = ''; i < lines.length; i++)
+                   text += lines[i][2];
                d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),lines);
              }
 
 BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk.match } )
+                         s:LocMarker
                          start:( Line { return _chunk.match } )
                          next:( !'>' !BlankLine Line { return _chunk.match } )*
                          stop:( BlankLine { return '\n' } )*
-                         { return [w, start + next.join('') + stop] }
+                         { return [w, s, start + next.join('') + stop] }
                        )+
                  { return lines; }
 
