@@ -60,7 +60,7 @@
     <property name="apk-dst.dir" value="${root.dir}" />
     <!-- <property name="libs-dst.dir" value="${native.libs.dir}" /> -->
 
-    <fileset id="assets-src.files" dir="${assets-src.dir}" includes="**/*.js" />
+    <fileset id="assets-src.files" dir="${assets-src.dir}" includes="*.js" />
     <fileset id="assets-dst.files" dir="${assets-dst.dir}" includes="**/*.js" />
     <fileset id="libs-src.files" dir="${libs-src.dir}" includes="**/*.jar" />
     <fileset id="libs-dst.files" dir="${libs-dst.dir}" includes="**/*.jar" />
@@ -110,7 +110,7 @@
         <delete>
            <fileset refid="libs-dst.files" />
         </delete>
-        <echo message="Creating symlinks for requirements from '${libs-src.dir}' in '{libs-dst.dir}' directory" />
+        <echo message="Creating symlinks for requirements from '${libs-src.dir}' in '${libs-dst.dir}' directory" />
         <symlinkfileset fsrefid="libs-src.files" destdir="${libs-dst.dir}" />
     </target>
 
