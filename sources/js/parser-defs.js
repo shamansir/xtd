@@ -162,8 +162,8 @@ var g_state = {
     'cur': null, // current element
     'root': null, // elements linked list head
     'extensions': e.pmd_EXTENSIONS, // enabled extensions
-    'elems': [], // elements, indexed by type
-    'refs': null, // references linked list head
+    'elems': {}, // elements, indexed by type
+    'refs': {}, // references linked list head
 };
 
 g_state.elems = new Array(t.pmd_NUM_TYPES);
@@ -235,9 +235,7 @@ function make_element_i(state, type, pos, end, text) {
              'pos'        : pos || -1, // -1 means 0 also
              'end'        : end || -1, // -1 means 0 also
              'next'       : null,
-             'label'      : null,
-             'address'    : null,
-             'text'       : text || null, // pmd_EXTRA_TEXT
+             'text'       : text || null,
              'children'   : null, // pmh_RAW_LIST
              'data'       : null,
              'toString'   : _elem_info };
@@ -272,28 +270,15 @@ function extension(state, extension) {
     return state.extensions & extension;
 };
 
+function save_reference(state, label, elm) {
+    if (!label) return;
+    state.refs[label] = elem;
+}
+
 function get_reference(state, label) {
     //console.log('get_reference: ', label);
     if (!label) return;
-    var cursor = state.refs;
-    while (cursor != null) {
-       if (cursor.label && (cursor.label == label)) {
-           return cursor;
-       }
-       cursor = cursor.next;
-    }
-}
-
-function cons(list, elem) {
-    if (list === null) throw new Error("List for cons func is null");
-
-    cur = list;
-    while (cur.next !== null) {
-        cur = cur.next;
-    }
-    cur.next = elem;
-
-    return list;
+    return state.refs[label];
 }
 
 // ALIAS =======================================================================
@@ -309,6 +294,7 @@ function elem_z(x)         { return make_element_i(g_state,x,0,0) } // type only
 function add(x,d)          { return add_element(g_state,x,d) } // x is element, d (data) is optional
 function ext(x)            { return extension(g_state,x) }
 function ref_exists(x)     { return (get_reference(g_state,x) != null) }
+function save_ref(x,e)     { return save_reference(g_state,x,e) }
 function get_ref(x)        { return get_reference(g_state,x) }
 
 // EXPORT ======================================================================
@@ -325,6 +311,7 @@ module.exports = {
     'add': add,
     'ext': ext,
     'ref_exists': ref_exists,
+    'save_ref': save_ref,
     'get_ref': get_ref,
     'state': g_state,
     'types': t,

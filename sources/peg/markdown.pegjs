@@ -416,7 +416,7 @@ EscapedChar =   '\\' !Newline [-\\`|*_{}[\]()#+.!><]
 Entity =    ( HexEntity / DecEntity / CharEntity )
             { d.add(d.elem_c(t.pmd_HTML_ENTITY,_chunk)) }
 
-Endline =   LineBreak / TerminalEndline / NormalEndline
+Endline =   ( LineBreak / TerminalEndline / NormalEndline )
 
 NormalEndline =   Sp Newline !BlankLine !'>' !AtxStart
                   !(Line ("===" '='* / "---" '-'*) Newline)
@@ -477,111 +477,70 @@ Image = '!' ( ExplicitLink / ReferenceLink )
         }*/
 
 Link =  ( ExplicitLink / ReferenceLink / AutoLink )
-        /*{ if ($$) ADD($$); }*/ // AutoLink does not return $$
 
 ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 
-ReferenceLinkDouble =  ff:( s:Label Spnl !"[]" l:Label )
-                        /*{
-                        	t.pmd_realelement *reference = GET_REF(l->label);
-                            if (reference) {
-                                $$ = elem_s(t.pmd_LINK);
-                                $$->label = strdup(l->label);
-                                $$->address = strdup(reference->address);
-                            } else
-                                $$ = NULL;
-                            FREE_LABEL(s);
-                            FREE_LABEL(l);
-                        }*/
+ReferenceLinkDouble =  t:Label Spnl !"[]" l:Label {
+                          var ref = d.get_ref(l);
+                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.address),
+                            { 'label': l, 'text': t, 'address': ref.data.address });
+                       }
 
-ReferenceLinkSingle =  ff:( s:Label (Spnl "[]")? )
-                        /*{
-                        	t.pmd_realelement *reference = GET_REF(s->label);
-                            if (reference) {
-                                $$ = elem_s(t.pmd_LINK);
-                                $$->label = strdup(s->label);
-                                $$->address = strdup(reference->address);
-                            } else
-                                $$ = NULL;
-                            FREE_LABEL(s);
-                        }*/
+ReferenceLinkSingle =  l:Label (Spnl "[]")? {
+                          var ref = d.get_ref(l);
+                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.address),
+                            { 'label': l, 'text': l, 'address': ref.data.address });
+                       }
 
-ExplicitLink =  ff:( s:Label Spnl '(' Sp l:Source Spnl Title Sp ')' )
-                /*{
-                    $$ = elem_s(t.pmd_LINK);
-                    $$->address = strdup(l->address);
-                    FREE_LABEL(s);
-                    FREE_ADDRESS(l);
-                }*/
+ExplicitLink =  l:Label Spnl '(' Sp a:Source Spnl t:Title Sp ')' {
+                    var ref = d.get_ref(l);
+                    if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.address),
+                        { 'label': l, 'text': t, 'address': ref.data.address });
+                }
 
-Source  = /*{ $$ = mk_notype(); }*/
-          ( '<' ff:( SourceContents ) /*{ $$->address = strdup(yytext); }*/ '>'
-          / ff:( SourceContents ) /*{ $$->address = strdup(yytext); }*/ )
+Source  = ( '<' txt:( SourceContents ) '>'
+          / txt:( SourceContents ) ) { return txt }
 
-SourceContents = ( ( !'(' !')' !'>' Nonspacechar )+ / '(' SourceContents ')')*
+SourceContents = ( ( !'(' !')' !'>' Nonspacechar )+ / '(' SourceContents ')')* { return _chunk.match }
 
-Title = ( TitleSingle / TitleDouble / "" )
+Title = title:( TitleSingle / TitleDouble / ("" { return '' } ) ) { return title }
 
-TitleSingle = '\'' ( !( '\'' Sp ( ')' / Newline ) ) . )* '\''
+TitleSingle = '\'' title:( ( !( '\'' Sp ( ')' / Newline ) ) . )* { return _chunk.match } ) '\'' { return title }
 
-TitleDouble = '"' ( !( '"' Sp ( ')' / Newline ) ) . )* '"'
+TitleDouble = '"' title:( ( !( '"' Sp ( ')' / Newline ) ) . )*{ return _chunk.match } ) '"' { return title }
 
 AutoLink = AutoLinkUrl / AutoLinkEmail
 
-AutoLinkUrl =  ff:( s:LocMarker /*{ s->type = t.pmd_AUTO_LINK_URL; }*/
-               '<'
-                 ff:( [A-Za-z]+ "://" ( !Newline !'>' . )+ )
-                 /*{ s->address = strdup(yytext); }*/
-               '>' )
-               /*{
-                s->end = thunk->end;
-                ADD(s);
-               }*/
+AutoLinkUrl =  '<' address:( [A-Za-z]+ "://" ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
+                d.add(d.elem_ct(t.pmd_AUTO_LINK_URL,_chunk,address));
+               }
 
-AutoLinkEmail = ff:( s:LocMarker /*{ s->type = t.pmd_AUTO_LINK_EMAIL; }*/
-                '<'
-                  ff:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ )
-                  /*{ s->address = strdup(yytext); }*/
-                '>' )
-               /*{
-                s->end = thunk->end;
-                ADD(s);
-               }*/
+AutoLinkEmail = '<' address:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
+                d.add(d.elem_cz(t.pmd_AUTO_LINK_URL,_chunk,address));
+               }
 
-Reference = ff:( s:LocMarker
-              NonindentSpace !"[]" l:Label ':' Spnl r:RefSrc RefTitle ) BlankLine+
-              /*{
-                t.pmd_realelement *el = elem_s(t.pmd_REFERENCE);
-                el->label = strdup(l->label);
-                el->address = strdup(r->address);
-                ADD(el);
-                FREE_LABEL(l);
-                FREE_ADDRESS(r);
-              }*/
+Reference = NonindentSpace !"[]" l:Label ':' Spnl a:RefSrc t:RefTitle ) BlankLine+ {
+                var el = d.elem_cz(t.pmd_REFERENCE,_chunk);
+                d.add(el,{ 'label': l, 'address': a, 'title': t });
+                d.save_ref(l,el);
+            }
 
-Label = ff:( s:LocMarker
-        '[' ( !'^' &{ d.ext(e.pmd_EXT_FOOTNOTES) } / &. &{ !d.ext(e.pmd_EXT_FOOTNOTES) } )
-        ff:( ( !']' Inline )* )
-        /*{ s->label = strdup(yytext); }*/
-        ']' )
-        /*{
-            s->pos = s->pos;
-            s->end = thunk->end;
-            $$ = s;
-        }*/
+Label = '[' ( !'^' &{ d.ext(e.pmd_EXT_FOOTNOTES) } / &. &{ !d.ext(e.pmd_EXT_FOOTNOTES) } )
+        txt:( ( !']' Inline )* { return _chunk.match } )
+        ']'
+        { return txt }
 
-RefSrc = ff:( Nonspacechar+ )
-		 /*{ $$ = mk_notype(); $$->address = strdup(yytext); }*/
+RefSrc = Nonspacechar+ { return _chunk.match }
 
 RefTitle =  ( RefTitleSingle / RefTitleDouble / RefTitleParens / EmptyTitle )
 
-EmptyTitle = ""
+EmptyTitle = "" { return '' }
 
-RefTitleSingle = Spnl '\'' ( !('\'' Sp Newline / Newline ) . )* '\''
+RefTitleSingle = Spnl '\'' title:( ( !('\'' Sp Newline / Newline ) . )* { return _chunk.match } ) '\'' { return title }
 
-RefTitleDouble = Spnl '"' ( !('"' Sp Newline / Newline) . )* '"'
+RefTitleDouble = Spnl '"' title:( ( !('"' Sp Newline / Newline) . )* { return _chunk.match } ) '"' { return title }
 
-RefTitleParens = Spnl '(' ( !(')' Sp Newline / Newline) . )* ')'
+RefTitleParens = Spnl '(' title:( ( !(')' Sp Newline / Newline) . )* { return _chunk.match } ) ')' { return title }
 
 // Starting point for parsing only references:
 References = ( Reference / SkipBlock )*
@@ -634,9 +593,8 @@ Indent =            "\t" / "    "
 IndentedLine =      Indent txt:Line { return txt }
 OptionallyIndentedLine = Indent? txt:Line { return txt }
 
-// StartList starts a list data structure that can be added to with cons:
-StartList = &.
-            /*{ $$ = NULL; }*/
+// Not used anywhere in grammar:
+// StartList = &.
 
 Line =  RawLine { return _chunk.match }
 
