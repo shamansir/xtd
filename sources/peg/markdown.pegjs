@@ -480,52 +480,53 @@ Link =  ( ExplicitLink / ReferenceLink / AutoLink )
 
 ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 
-ReferenceLinkDouble =  t:Label Spnl !"[]" l:Label {
-                          var ref = d.get_ref(l);
-                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.address),
-                            { 'label': l, 'text': t, 'address': ref.data.address });
+ReferenceLinkDouble =  ttl:Label Spnl !"[]" lbl:Label {
+                          var ref = d.get_ref(lbl);
+                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.source),
+                            { 'label': lbl, 'title': t, 'source': ref.data.address });
                        }
 
-ReferenceLinkSingle =  l:Label (Spnl "[]")? {
-                          var ref = d.get_ref(l);
-                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.address),
-                            { 'label': l, 'text': l, 'address': ref.data.address });
+ReferenceLinkSingle =  lbl:Label (Spnl "[]")? {
+                          var ref = d.get_ref(lbl);
+                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.source),
+                            { 'label': lbl, 'title': lbl, 'source': ref.data.source });
                        }
 
-ExplicitLink =  l:Label Spnl '(' Sp a:Source Spnl t:Title Sp ')' {
-                    var ref = d.get_ref(l);
-                    if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.address),
-                        { 'label': l, 'text': t, 'address': ref.data.address });
+ExplicitLink = lbl:Label Spnl '(' Sp src:Source Spnl ttl:Title Sp ')' {
+                    d.add(d.elem_ct(t.pmd_LINK,_chunk,src),
+                        { 'label': lbl, 'title': ttl, 'source': src });
                 }
 
-Source  = ( '<' txt:( SourceContents ) '>'
-          / txt:( SourceContents ) ) { return txt }
+Source  = ( '<' txt:( SourceContents ) '>' )
+          / txt:( SourceContents ) { return txt }
 
-SourceContents = ( ( !'(' !')' !'>' Nonspacechar )+ / '(' SourceContents ')')* { return _chunk.match }
+SourceContents = ( ( !'(' !')' !'>' Nonspacechar )+ / '(' SourceContents ')' )* { return _chunk.match }
 
 Title = title:( TitleSingle / TitleDouble / ("" { return '' } ) ) { return title }
 
 TitleSingle = '\'' title:( ( !( '\'' Sp ( ')' / Newline ) ) . )* { return _chunk.match } ) '\'' { return title }
 
-TitleDouble = '"' title:( ( !( '"' Sp ( ')' / Newline ) ) . )*{ return _chunk.match } ) '"' { return title }
+TitleDouble = '"' title:( ( !( '"' Sp ( ')' / Newline ) ) . )* { return _chunk.match } ) '"' { return title }
 
 AutoLink = AutoLinkUrl / AutoLinkEmail
 
-AutoLinkUrl =  '<' address:( [A-Za-z]+ "://" ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
-                d.add(d.elem_ct(t.pmd_AUTO_LINK_URL,_chunk,address));
+AutoLinkUrl =  '<' src:( [A-Za-z]+ "://" ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
+                   d.add(d.elem_ct(t.pmd_AUTO_LINK_URL,_chunk,src));
                }
 
-AutoLinkEmail = '<' address:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
-                d.add(d.elem_cz(t.pmd_AUTO_LINK_URL,_chunk,address));
+AutoLinkEmail = '<' src:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
+                   d.add(d.elem_cz(t.pmd_AUTO_LINK_URL,_chunk,src));
                }
 
-Reference = NonindentSpace !"[]" l:Label ':' Spnl a:RefSrc t:RefTitle ) BlankLine+ {
+Reference = NonindentSpace !"[]" lbl:Label ':' Spnl src:RefSrc ttl:RefTitle BlankLine+ {
                 var el = d.elem_cz(t.pmd_REFERENCE,_chunk);
-                d.add(el,{ 'label': l, 'address': a, 'title': t });
-                d.save_ref(l,el);
+                d.add(el,{ 'label': lbl, 'source': src, 'title': ttl });
+                //console.log('saving ref:' + l + ' :: ' + el);
+                d.save_ref(lbl,el);
             }
 
-Label = '[' ( !'^' &{ d.ext(e.pmd_EXT_FOOTNOTES) } / &. &{ !d.ext(e.pmd_EXT_FOOTNOTES) } )
+//Label = '[' ( !'^' &{ d.ext(e.pmd_EXT_FOOTNOTES) } / &. &{ !d.ext(e.pmd_EXT_FOOTNOTES) } )
+Label = '[' !'^'
         txt:( ( !']' Inline )* { return _chunk.match } )
         ']'
         { return txt }

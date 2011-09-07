@@ -94,6 +94,8 @@ t.type_name = function(type) {
         case t.pmd_REFERENCE:          return "REFERENCE";
         case t.pmd_NOTE:               return "NOTE";
 
+        case t.pmd_AUTO_LINK_URL:      return "AUTO_LINK_URL";
+        case t.pmd_AUTO_LINK_EMAIL:    return "AUTO_LINK_EMAIL";
 
         default:                       return "?";
     }
@@ -162,8 +164,8 @@ var g_state = {
     'cur': null, // current element
     'root': null, // elements linked list head
     'extensions': e.pmd_EXTENSIONS, // enabled extensions
-    'elems': {}, // elements, indexed by type
-    'refs': {}, // references linked list head
+    'elems': [], // elements, indexed by type (int)
+    'refs': {}, // references map (label: element)
 };
 
 g_state.elems = new Array(t.pmd_NUM_TYPES);
@@ -177,11 +179,11 @@ g_state.toString = function() {
        result += elem.toString() + ' -> ';
     });
 
-    result += '\n\n' + '// refs ';
+    result += '\n\n' + '// refs ' + '\n\n';
 
-    map_elems(this.refs, function(elem) {
-       result += elem.toString() + ' -> ';
-    });
+    for (ref_label in this.refs) {
+       result += ref_label + ' -> ' + this.refs[ref_label] + '\n';
+    };
 
     result += '\n\n' + '// elems ';
 
@@ -272,7 +274,7 @@ function extension(state, extension) {
 
 function save_reference(state, label, elm) {
     if (!label) return;
-    state.refs[label] = elem;
+    state.refs[label] = elm;
 }
 
 function get_reference(state, label) {
