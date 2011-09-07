@@ -1,4 +1,13 @@
-/* PEG Markdown Highlight
+/*
+ * PegJS Markdown Parser - Tree Generator, JS part is programmed by
+ * Ulric Wilfred <shaman.sir@gmail.com>, http://shamansir.github.com
+ *
+ * PEG rules and the idea are taken and adapted to PegJS from PegC version written by Ali Rantakari
+ * PegC version in its turn is written using PEG grammar from John MacFarlane
+ *
+ * === ORIGINAL COMMENT: ===
+
+ * PEG Markdown Highlight
  * Copyright 2011 Ali Rantakari -- http://hasseg.org
  * Licensed under the GPL2+ and MIT licenses (see LICENSE for more info).
  *
@@ -33,7 +42,7 @@
 
 }
 
-start =     Doc { return d.state; }
+start =     Doc { d.release_ref(); return d.state; }
 
 Doc =       ( Block )*
 
@@ -483,14 +492,14 @@ ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 ReferenceLinkDouble =  txt:Label Spnl !"[]" lbl:Label {
                           d.wait_ref( lbl, function (ref) {
                               d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                               { 'label': lbl, 'title': ref.data.title, 'source': ref.data.source });
+                               { 'label': lbl, 'title': (ref ? ref.data.title : null), 'source': (ref ? ref.data.source : null) });
                           });
                        }
 
 ReferenceLinkSingle =  txt:Label (Spnl "[]")? {
                           d.wait_ref( txt, function (ref) {
                               d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                               { 'label': txt, 'title': ref.data.title, 'source': ref.data.source });
+                               { 'label': txt, 'title': (ref ? ref.data.title : null), 'source': (ref ? ref.data.source : null) });
                           });
                        }
 
@@ -629,4 +638,9 @@ InlineNote =    &{ d.ext(e.pmd_EXT_FOOTNOTES) }
 
 RawNoteBlock =  ( !BlankLine OptionallyIndentedLine )+
                 ( BlankLine* )
+
+{
+   console.log('releasing');
+   d.release_ref();
+}
 

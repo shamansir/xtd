@@ -291,6 +291,7 @@ function save_reference(state, label, elm) {
        for (var i = 0; i < waiters.length; waiters++) {
             waiters[i](elm);
        }
+       delete state._rwaiters[label];
     }
 }
 
@@ -310,6 +311,18 @@ function wait_reference(state, label, func) {
     }
 }
 
+function release_waiters(state) {
+    for (label in state._rwaiters) {
+        var waiters = state._rwaiters[label];
+        if (waiters) {
+           for (var i = 0; i < waiters.length; waiters++) {
+                waiters[i](null);
+           }
+           delete state._rwaiters[label];
+        }
+    }
+}
+
 // ALIAS =======================================================================
 
 function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
@@ -326,6 +339,7 @@ function ref_exists(x)     { return (get_reference(g_state,x) != null) }
 function save_ref(x,e)     { return save_reference(g_state,x,e) }
 function get_ref(x)        { return get_reference(g_state,x) }
 function wait_ref(x,f)     { return wait_reference(g_state,x,f) }
+function release_ref()     { return release_waiters(g_state) }
 
 // EXPORT ======================================================================
 
@@ -344,6 +358,7 @@ module.exports = {
     'save_ref': save_ref,
     'wait_ref': wait_ref,
     'get_ref': get_ref,
+    'release_ref': release_ref,
     'state': g_state,
     'types': t,
     'exts': e,
