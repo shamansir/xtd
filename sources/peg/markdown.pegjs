@@ -483,20 +483,20 @@ ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 ReferenceLinkDouble =  txt:Label Spnl !"[]" lbl:Label {
                           d.wait_ref( lbl, function (ref) {
                               d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                               { 'label': lbl, 'title': ref.data.title || txt, 'source': ref.data.source });
+                               { 'label': lbl, 'title': ref.data.title, 'source': ref.data.source });
                           });
                        }
 
 ReferenceLinkSingle =  txt:Label (Spnl "[]")? {
                           d.wait_ref( txt, function (ref) {
                               d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                               { 'label': txt, 'title': ref.data.title || txt, 'source': ref.data.source });
+                               { 'label': txt, 'title': ref.data.title, 'source': ref.data.source });
                           });
                        }
 
 ExplicitLink = txt:Label Spnl '(' Sp src:Source Spnl ttl:Title Sp ')' {
                     d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                        { 'label': null, 'title': ttl || txt, 'source': src });
+                        { 'label': null, 'title': ttl, 'source': src });
                 }
 
 Source  = ( '<' txt:( SourceContents ) '>' )
@@ -523,7 +523,6 @@ AutoLinkEmail = '<' src:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ { return _ch
 Reference = NonindentSpace !"[]" lbl:Label ':' Spnl src:RefSrc ttl:RefTitle BlankLine+ {
                 var el = d.elem_cz(t.pmd_REFERENCE,_chunk);
                 d.add(el,{ 'label': lbl, 'source': src, 'title': ttl });
-                //console.log('saving ref:' + l + ' :: ' + el);
                 d.save_ref(lbl,el);
             }
 

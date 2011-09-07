@@ -2,7 +2,7 @@
 
 This is a [standard](http://link.com) link. This [is][7] by integer id. [This][this] is by alias. And [aliases] [aliases] can be separated with space.
 [And][] this is with auto-generated label. Oh, [and inline with title](http://inline-title.org "Inline-Title") [by][] the [way][].
-And yep, [reference with title][15]. Ids can contain [several words][]. [No][]-label link, by the way. [Before]-link.
+And yep, [reference with title][15]. Ids can contain [several words][]. [No][]-label link, by the way. [Before][]-link.
 
 [7]: http://is.com
 [this]: http://this.com

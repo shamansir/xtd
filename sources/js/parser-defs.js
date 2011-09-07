@@ -198,6 +198,15 @@ g_state.toString = function() {
         }
     }
 
+    result += '\n\n' + '// links ' + '\n\n';
+
+    var elems = this.elems[t.pmd_LINK];
+    if (elems != null) {
+        for (var j = 0; j < elems.length; j++) {
+            result += '\'' + elems[j].data.title + '\' / ' + elems[j].data.label + ' : ' + elems[j].data.source + ' (' + elems[j].text + ')' + '\n';
+        };
+    }
+
     return result;
 }
 
@@ -275,6 +284,7 @@ function extension(state, extension) {
 
 function save_reference(state, label, elm) {
     if (!label) return;
+    var label = label.toLowerCase();
     state.refs[label] = elm;
     var waiters = state._rwaiters[label];
     if (waiters) {
@@ -291,6 +301,7 @@ function get_reference(state, label) {
 }
 
 function wait_reference(state, label, func) {
+    var label = label.toLowerCase();
     var ref = get_reference(state,label);
     if (ref) { func(ref) }
     else {
