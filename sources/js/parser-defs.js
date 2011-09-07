@@ -166,6 +166,7 @@ var g_state = {
     'extensions': e.pmd_EXTENSIONS, // enabled extensions
     'elems': [], // elements, indexed by type (int)
     'refs': {}, // references map (label: element)
+    '_rwaiters': {} // waiters for references, map (label: array of func)
 };
 
 g_state.elems = new Array(t.pmd_NUM_TYPES);
@@ -275,12 +276,27 @@ function extension(state, extension) {
 function save_reference(state, label, elm) {
     if (!label) return;
     state.refs[label] = elm;
+    var waiters = state._rwaiters[label];
+    if (waiters) {
+       for (var i = 0; i < waiters.length; waiters++) {
+            waiters[i](elm);
+       }
+    }
 }
 
 function get_reference(state, label) {
     //console.log('get_reference: ', label);
     if (!label) return;
     return state.refs[label];
+}
+
+function wait_reference(state, label, func) {
+    var ref = get_reference(state,label);
+    if (ref) { func(ref) }
+    else {
+        if (!state._rwaiters[label]) state._rwaiters[label] = [];
+        state._rwaiters[label].push(func);
+    }
 }
 
 // ALIAS =======================================================================
@@ -298,6 +314,7 @@ function ext(x)            { return extension(g_state,x) }
 function ref_exists(x)     { return (get_reference(g_state,x) != null) }
 function save_ref(x,e)     { return save_reference(g_state,x,e) }
 function get_ref(x)        { return get_reference(g_state,x) }
+function wait_ref(x,f)     { return wait_reference(g_state,x,f) }
 
 // EXPORT ======================================================================
 
@@ -314,6 +331,7 @@ module.exports = {
     'ext': ext,
     'ref_exists': ref_exists,
     'save_ref': save_ref,
+    'wait_ref': wait_ref,
     'get_ref': get_ref,
     'state': g_state,
     'types': t,

@@ -480,21 +480,23 @@ Link =  ( ExplicitLink / ReferenceLink / AutoLink )
 
 ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 
-ReferenceLinkDouble =  ttl:Label Spnl !"[]" lbl:Label {
-                          var ref = d.get_ref(lbl);
-                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.source),
-                            { 'label': lbl, 'title': t, 'source': ref.data.address });
+ReferenceLinkDouble =  txt:Label Spnl !"[]" lbl:Label {
+                          d.wait_ref( lbl, function (ref) {
+                              d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
+                               { 'label': lbl, 'title': ref.data.title || txt, 'source': ref.data.source });
+                          });
                        }
 
-ReferenceLinkSingle =  lbl:Label (Spnl "[]")? {
-                          var ref = d.get_ref(lbl);
-                          if (ref) d.add(d.elem_ct(t.pmd_LINK,_chunk,ref.data.source),
-                            { 'label': lbl, 'title': lbl, 'source': ref.data.source });
+ReferenceLinkSingle =  txt:Label (Spnl "[]")? {
+                          d.wait_ref( txt, function (ref) {
+                              d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
+                               { 'label': txt, 'title': ref.data.title || txt, 'source': ref.data.source });
+                          });
                        }
 
-ExplicitLink = lbl:Label Spnl '(' Sp src:Source Spnl ttl:Title Sp ')' {
-                    d.add(d.elem_ct(t.pmd_LINK,_chunk,src),
-                        { 'label': lbl, 'title': ttl, 'source': src });
+ExplicitLink = txt:Label Spnl '(' Sp src:Source Spnl ttl:Title Sp ')' {
+                    d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
+                        { 'label': null, 'title': ttl || txt, 'source': src });
                 }
 
 Source  = ( '<' txt:( SourceContents ) '>' )
