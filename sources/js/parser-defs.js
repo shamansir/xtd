@@ -236,7 +236,7 @@ function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
            elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~') : ' no-text') +
            ((elm.children != null) ? ' has-children' : '') +
-           ((elm.data != null) ? (' @@ ' + util.inspect(elm.data,false,null)) : '') + '}';
+           ((elm.data != null) ? (' @@ ' + ((elm.type !== t.pmd_IMAGE) ? util.inspect(elm.data,false,null) : util.inspect(elm.data.data)) ) : '') + '}';
 }
 
 function _elem_info() { return elem_info(this); }
@@ -323,6 +323,19 @@ function release_waiters(state) {
     }
 }
 
+function before(state) {
+    // things to do before parsing
+}
+
+function after(state) {
+    // things to do after parsing
+    release_waiters(state);
+
+    // sort_by_pos(state)
+    // pack_children(state)
+    // parse_lists(state)
+}
+
 // ALIAS =======================================================================
 
 function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
@@ -339,7 +352,8 @@ function ref_exists(x)     { return (get_reference(g_state,x) != null) }
 function save_ref(x,e)     { return save_reference(g_state,x,e) }
 function get_ref(x)        { return get_reference(g_state,x) }
 function wait_ref(x,f)     { return wait_reference(g_state,x,f) }
-function release_ref()     { return release_waiters(g_state) }
+function start()           { return before(g_state) }
+function end()             { return after(g_state) }
 
 // EXPORT ======================================================================
 
@@ -354,12 +368,17 @@ module.exports = {
     'elem_z': elem_z,
     'add': add,
     'ext': ext,
+
     'ref_exists': ref_exists,
     'save_ref': save_ref,
     'wait_ref': wait_ref,
     'get_ref': get_ref,
-    'release_ref': release_ref,
+
+    'start': start,
+    'end': end,
+
     'state': g_state,
+
     'types': t,
     'exts': e,
     'TYPESTR': t.type_name,

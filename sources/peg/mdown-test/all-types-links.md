@@ -4,6 +4,12 @@ This is a [standard](http://link.com) link. This [is][7] by integer id. [This][t
 [And][] this is with auto-generated label. Oh, [and inline with title](http://inline-title.org "Inline-Title") [by][] the [way][].
 And yep, [reference with title][15]. Ids can contain [several words][]. [No][]-label link, by the way. [Before][]-link.
 
+Aah, and ![images](file://some.src) links are the things I almost forgot. Also, a ![ref-link][] to an image. They can be a links, see: ![[a-link](ht:/src)](ht:/img.src "Image title")
+
+And what about links with no title [](ht:/test)?
+
+ * [Link][] in a bullet
+
 [7]: http://is.com
 [this]: http://this.com
 [aliases]: /aliases

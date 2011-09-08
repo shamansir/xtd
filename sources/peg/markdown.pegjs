@@ -40,9 +40,11 @@
        return text;
    }
 
+   d.start();
+
 }
 
-start =     Doc { d.release_ref(); return d.state; }
+start =     Doc { d.end(); return d.state; }
 
 Doc =       ( Block )*
 
@@ -476,36 +478,44 @@ StrongUl =  TwoUlOpen
             ( !TwoUlClose Inline )*
             TwoUlClose
 
-Image = '!' ( ExplicitLink / ReferenceLink )
-        /*{
-            if ($$ != NULL) {
-                $$->type = t.pmd_IMAGE;
-                $$->pos -= 1;
-                ADD($$);
-            }
-        }*/
+Image = "!" lnk:( ExplicitLink / ReferenceLink )
+        { d.add(d.elem_cz(t.pmd_IMAGE,_chunk),lnk); }
 
 Link =  ( ExplicitLink / ReferenceLink / AutoLink )
 
 ReferenceLink = ReferenceLinkDouble / ReferenceLinkSingle
 
 ReferenceLinkDouble =  txt:Label Spnl !"[]" lbl:Label {
+                          var lnk_elem = d.elem_ct(t.pmd_LINK,_chunk,txt);
                           d.wait_ref( lbl, function (ref) {
-                              d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                               { 'label': lbl, 'title': (ref ? ref.data.title : null), 'source': (ref ? ref.data.source : null) });
+                              d.add( lnk_elem,
+                                 { 'label': lbl,
+                                   'text': txt,
+                                   'title': (ref ? ref.data.title : null),
+                                   'source': (ref ? ref.data.source : null) });
                           });
+                          return lnk_elem;
                        }
 
 ReferenceLinkSingle =  txt:Label (Spnl "[]")? {
+                          var lnk_elem = d.elem_ct(t.pmd_LINK,_chunk,txt);
                           d.wait_ref( txt, function (ref) {
-                              d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                               { 'label': txt, 'title': (ref ? ref.data.title : null), 'source': (ref ? ref.data.source : null) });
+                              d.add( lnk_elem,
+                                  { 'label': txt,
+                                    'text': txt,
+                                    'title': (ref ? ref.data.title : null),
+                                    'source': (ref ? ref.data.source : null) });
                           });
+                          return lnk_elem;
                        }
 
 ExplicitLink = txt:Label Spnl '(' Sp src:Source Spnl ttl:Title Sp ')' {
-                    d.add(d.elem_ct(t.pmd_LINK,_chunk,txt),
-                        { 'label': null, 'title': ttl, 'source': src });
+                    var lnk_elem = d.elem_ct(t.pmd_LINK,_chunk,txt);
+                    d.add( lnk_elem, { 'label': null,
+                                       'text': txt,
+                                       'title': ttl,
+                                       'source': src });
+                    return lnk_elem;
                 }
 
 Source  = ( '<' txt:( SourceContents ) '>' )
@@ -523,10 +533,12 @@ AutoLink = AutoLinkUrl / AutoLinkEmail
 
 AutoLinkUrl =  '<' src:( [A-Za-z]+ "://" ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
                    d.add(d.elem_ct(t.pmd_AUTO_LINK_URL,_chunk,src));
+                   return { 'src': src }
                }
 
 AutoLinkEmail = '<' src:( [-A-Za-z0-9+_.]+ '@' ( !Newline !'>' . )+ { return _chunk.match } ) '>' {
                    d.add(d.elem_cz(t.pmd_AUTO_LINK_URL,_chunk,src));
+                   return { 'src': src }
                }
 
 Reference = NonindentSpace !"[]" lbl:Label ':' Spnl src:RefSrc ttl:RefTitle BlankLine+ {
