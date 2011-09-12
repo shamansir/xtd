@@ -162,7 +162,7 @@ e.ext_name = function(ext) {
 
 var g_state = {
     'cur': null, // current element
-    'root': null, // elements linked list head
+    'root': null, // elements dbl-linked list head
     'extensions': e.pmd_EXTENSIONS, // enabled extensions
     'elems': [], // elements, indexed by type (int)
     'refs': {}, // references map (label: element)
@@ -171,25 +171,26 @@ var g_state = {
 
 g_state.elems = new Array(t.pmd_NUM_TYPES);
 
-g_state.toString = function() {
-    var result = '\n\n' + 'cur ' + this.cur;
+function state_info(state) {
+
+    var result = '\n\n' + 'cur ' + state.cur;
 
     result += '\n\n' + '// chain ';
 
-    map_elems(this.root, function(elem) {
+    map_elems(state.root, function(elem) {
        result += elem.toString() + ' -> ';
     });
 
     result += '\n\n' + '// refs ' + '\n\n';
 
-    for (ref_label in this.refs) {
-       result += ref_label + ' -> ' + this.refs[ref_label] + '\n';
+    for (ref_label in state.refs) {
+       result += ref_label + ' -> ' + state.refs[ref_label] + '\n';
     };
 
     result += '\n\n' + '// elems ';
 
     for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
-        var elems = this.elems[i];
+        var elems = state.elems[i];
         if (elems != null) {
             result += '\n\n' + t.type_name(i) + ' ';
             for (var j = 0; j < elems.length; j++) {
@@ -200,7 +201,7 @@ g_state.toString = function() {
 
     result += '\n\n' + '// links ' + '\n\n';
 
-    var elems = this.elems[t.pmd_LINK];
+    var elems = state.elems[t.pmd_LINK];
     if (elems != null) {
         for (var j = 0; j < elems.length; j++) {
             result += '\'' + elems[j].data.title + '\' / ' + elems[j].data.label + ' : ' + elems[j].data.source + ' (' + elems[j].text + ')' + '\n';
@@ -209,6 +210,8 @@ g_state.toString = function() {
 
     return result;
 }
+
+g_state.toString = function() { return state_info(this); }
 
 // TODO: a function that will add node type markers to the text using state refs
 /* g_state.spec(text) {
@@ -221,17 +224,18 @@ g_state.toString = function() {
 
 // FUNCTIONS ===================================================================
 
+/* map a function to a chain of elements */
 function map_elems(first, func) {
     if (first != null) {
         var cursor = first;
         while (cursor != null) {
             if (func) func(cursor);
             cursor = cursor.next;
-
         }
     }
 }
 
+/* return element info */
 function elem_info(elm) {
     return '{' + t.type_name(elm.type) + ' ' +
            elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~') : ' no-text') +
@@ -241,14 +245,16 @@ function elem_info(elm) {
 
 function _elem_info() { return elem_info(this); }
 
+/* create element node with specified parameters */
 function make_element_i(state, type, pos, end, text) {
     //console.log('make_element: ', t.type_name(type), pos, end, text);
     return { 'type'       : type,
-             'pos'        : pos || -1, // -1 means 0 also
-             'end'        : end || -1, // -1 means 0 also
+             'pos'        : pos,
+             'end'        : end,
              'next'       : null,
+             'prev'       : null,
              'text'       : text || null,
-             'children'   : null, // pmh_RAW_LIST
+             'children'   : null, // elements inside this one
              'data'       : null,
              'toString'   : _elem_info };
 }
@@ -257,6 +263,7 @@ function make_element(state, type, chunk) {
     return make_element_i(state, type, chunk.pos, chunk.end, chunk.match);
 }
 
+/* add element and some data (optional) to the state */
 function add_element(state, elem, data) {
     //console.log('add: ', elem);
 
@@ -265,6 +272,7 @@ function add_element(state, elem, data) {
 
     if (state.cur != null) {
         state.cur.next = elem;
+        elem.prev = null;
     }
 
     state.cur = elem;
@@ -277,11 +285,13 @@ function add_element(state, elem, data) {
 
 };
 
+/* check if extension is enabled */
 function extension(state, extension) {
     //console.log('extension: ', e.ext_name(extension), state.extensions & extension);
     return state.extensions & extension;
 };
 
+/* save reference data for a label */
 function save_reference(state, label, elm) {
     if (!label) return;
     var label = label.toLowerCase();
@@ -295,12 +305,15 @@ function save_reference(state, label, elm) {
     }
 }
 
+/* get reference data using label */
 function get_reference(state, label) {
     //console.log('get_reference: ', label);
     if (!label) return;
     return state.refs[label];
 }
 
+/* wait for reference data to appear and then call passed function
+   (will be called with null if there is no such reference at all) */
 function wait_reference(state, label, func) {
     var label = label.toLowerCase();
     var ref = get_reference(state,label);
@@ -311,6 +324,7 @@ function wait_reference(state, label, func) {
     }
 }
 
+/* release (call with null) all waiting functions that hasn't got their references */
 function release_waiters(state) {
     for (label in state._rwaiters) {
         var waiters = state._rwaiters[label];
@@ -322,6 +336,8 @@ function release_waiters(state) {
         }
     }
 }
+
+// GLOBAL ======================================================================
 
 function before(state) {
     // things to do before parsing
