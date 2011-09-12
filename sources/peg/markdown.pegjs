@@ -20,27 +20,29 @@
 // see parser-defs.js for the source of used functions and variables
 
 {
-   var d = require(process.cwd() + '/parser-defs');
-   var e = d.exts;
-   var t = d.types;
 
-   function packListData(start, cont) {
-       for (var i = 0, result = [start]; i < cont.length; i++)
-           for (var j = 0; j < cont[i].length; j++)
-               result.push(cont[i][j]);
-       return result;
-   }
+    var d = require(process.cwd() + '/parser-defs');
+    var e = d.exts;
+    var t = d.types;
 
-   function extractListText(data) {
-       for (var i = 0, text = ''; i < data.length; i++) {
-           for (var j = 0, src = data[i][2]; j < src.length; j++)
-               for (var k = 0; k < src[j].length; k++)
-                   text += src[j][k];
-       }
-       return text;
-   }
+    function packListData(start, cont) {
+        for (var i = 0, result = [start]; i < cont.length; i++) {
+            for (var j = 0; j < cont[i].length; j++) {
+                result.push(cont[i][j]);
+        }   }
+        return result;
+    }
 
-   d.start();
+    function extractListText(data) {
+        for (var i = 0, text = ''; i < data.length; i++) {
+            for (var j = 0, src = data[i][2]; j < src.length; j++) {
+                for (var k = 0; k < src[j].length; k++) {
+                    text += src[j][k];
+        }   }   }
+        return text;
+    }
+
+    d.start();
 
 }
 
@@ -103,8 +105,9 @@ Heading = SetextHeading / AtxHeading
 
 // TODO: allow double-triple blockquotes?
 BlockQuote = lines:BlockQuoteRaw
-             { for (var i = 0, text = ''; i < lines.length; i++)
+             { for (var i = 0, text = ''; i < lines.length; i++) {
                    text += lines[i][2];
+               }
                d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),lines);
              }
 
@@ -188,8 +191,9 @@ ListItemTightEnumerator =
 
 ListBlock = !BlankLine start:Line
             cont:( ( ListBlockLine )* )
-            { for (var i = 0, joined = [start]; i < cont.length; i++)
+            { for (var i = 0, joined = [start]; i < cont.length; i++) {
                   joined.push(cont[i]);
+              }
               return joined; }
 
 ListContinuationBlock = ( BlankLine* )

@@ -158,6 +158,42 @@ e.ext_name = function(ext) {
     }
 }
 
+// UTILS =======================================================================
+
+/* pad some string to specified number of chars */
+
+function _pad(str, num) {
+    var result;
+    if (!str) {
+        result = '';
+        while (num > 0) { result += ' '; num--; }
+    } else if (num > str.length) {
+        result = str;
+        while (num > str.length) { result += ' '; num--; }
+    } else if (num === str.length) {
+        result = str;
+    } else /*if (num < str.length)*/ {
+        if (num > 12) {
+           result = str.substring(0, (num / 2) - 3);
+           result += ' ... ';
+           result += str.substring(str.length - ((num / 2) - 3), str.length);
+           while (num > result.length) { result += ' '; }
+        } else {
+           result = str.substring(0, num - 2);
+           result += '} ';
+        }
+    }
+    return result;
+}
+
+/* return element info */
+function elem_info(elm) {
+    return _pad(elm.pos + ':' + elm.end, 11) + _pad(t.type_name(elm.type), 12) +
+           ((elm.text != null) ? _pad('<< ' + elm.text + ' >>', 54) : '--no-text--');
+           //((elm.children != null) ? ' has-children' : '') +
+           //((elm.data != null) ? (' @@ ' + ((elm.type !== t.pmd_IMAGE) ? util.inspect(elm.data,false,null) : util.inspect(elm.data.data)) ) : '') + '}';
+}
+
 // STATE =======================================================================
 
 var g_state = {
@@ -173,28 +209,28 @@ g_state.elems = new Array(t.pmd_NUM_TYPES);
 
 function state_info(state) {
 
-    var result = '\n\n' + 'cur ' + state.cur;
+    var result = '\n\n';
 
-    result += '\n\n' + '// chain ';
+    result += '// chain ' + '\n\n';
 
     map_elems(state.root, function(elem) {
-       result += elem.toString() + ' -> ';
+       result += elem.toString() + '\n';
     });
 
     result += '\n\n' + '// refs ' + '\n\n';
 
     for (ref_label in state.refs) {
-       result += ref_label + ' -> ' + state.refs[ref_label] + '\n';
+       result += _pad(ref_label, 20) + ' -> ' + state.refs[ref_label] + '\n';
     };
 
-    result += '\n\n' + '// elems ';
+    result += '\n\n' + '// elems ' + '\n';
 
     for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
         var elems = state.elems[i];
         if (elems != null) {
-            result += '\n\n' + t.type_name(i) + ' ';
+            result += '\n# ' + t.type_name(i) + ':\n\n' ;
             for (var j = 0; j < elems.length; j++) {
-                result += elems[j].toString() + ' ## ';
+                result += elems[j].toString() + '\n';
             };
         }
     }
@@ -204,7 +240,7 @@ function state_info(state) {
     var elems = state.elems[t.pmd_LINK];
     if (elems != null) {
         for (var j = 0; j < elems.length; j++) {
-            result += '\'' + elems[j].data.title + '\' / ' + elems[j].data.label + ' : ' + elems[j].data.source + ' (' + elems[j].text + ')' + '\n';
+            result += _pad(elems[j].data.title, 16) + _pad(elems[j].data.label, 12) + _pad(elems[j].data.source, 27) + _pad(elems[j].text, 23) + '\n';
         };
     }
 
@@ -235,14 +271,6 @@ function map_elems(first, func) {
     }
 }
 
-/* return element info */
-function elem_info(elm) {
-    return '{' + t.type_name(elm.type) + ' ' +
-           elm.pos + ':' + elm.end + ((elm.text != null) ? (' ~( ' + elm.text + ' )~') : ' no-text') +
-           ((elm.children != null) ? ' has-children' : '') +
-           ((elm.data != null) ? (' @@ ' + ((elm.type !== t.pmd_IMAGE) ? util.inspect(elm.data,false,null) : util.inspect(elm.data.data)) ) : '') + '}';
-}
-
 function _elem_info() { return elem_info(this); }
 
 /* create element node with specified parameters */
@@ -267,8 +295,9 @@ function make_element(state, type, chunk) {
 function add_element(state, elem, data) {
     //console.log('add: ', elem);
 
-    if (state.root == null)
+    if (state.root == null) {
         state.root = elem || null;
+    }
 
     if (state.cur != null) {
         state.cur.next = elem;
@@ -277,8 +306,9 @@ function add_element(state, elem, data) {
 
     state.cur = elem;
 
-    if (state.elems[elem.type] == null)
+    if (state.elems[elem.type] == null) {
         state.elems[elem.type] = [];
+    }
     state.elems[elem.type].push(elem);
 
     elem.data = data;
@@ -339,10 +369,12 @@ function release_waiters(state) {
 
 // GLOBAL ======================================================================
 
+/* executed before parsing */
 function before(state) {
     // things to do before parsing
 }
 
+/* executed after parsing */
 function after(state) {
     // things to do after parsing
     release_waiters(state);
@@ -398,5 +430,6 @@ module.exports = {
     'types': t,
     'exts': e,
     'TYPESTR': t.type_name,
-    'EXTSTR': e.ext_name };
+    'EXTSTR': e.ext_name
+};
 
