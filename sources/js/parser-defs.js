@@ -162,51 +162,43 @@ e.ext_name = function(ext) {
 
 /* pad some string to specified number of chars */
 
-function _pad(str, num) {
+var EOL_NO_STRIP = 0;
+var EOL_STRIP = 1;
+
+function _pad(str, num, strip_eol) {
     var result;
     if (!str) {
         result = '';
         while (num > 0) { result += ' '; num--; }
-    } else if (num > str.length) {
-        result = str;
-        while (num > str.length) { result += ' '; num--; }
-    } else if (num === str.length) {
-        result = str;
-    } else /*if (num < str.length)*/ {
-        if (num > 12) {
-           result = str.substring(0, (num / 2) - 3);
-           result += ' ... ';
-           result += str.substring(str.length - ((num / 2) - 3), str.length);
-           while (num > result.length) { result += ' '; }
-        } else {
-           result = str.substring(0, num - 2);
-           result += '} ';
+    } else {
+        if (strip_eol) { str = str.replace(/\n\r?/g, ' '); }
+        if (num > str.length) {
+            result = str;
+            while (num > str.length) { result += ' '; num--; }
+        } else if (num === str.length) {
+            result = str;
+        } else /*if (num < str.length)*/ {
+            if (num > 12) {
+               result = str.substring(0, (num / 2) - 3);
+               result += ' ... ';
+               result += str.substring(str.length - ((num / 2) - 3), str.length);
+               while (num > result.length) { result += ' '; }
+            } else {
+               result = str.substring(0, num - 2);
+               result += '} ';
+            }
         }
     }
     return result;
 }
 
-/* return element info */
-function elem_info(elm) {
+/* return element information string */
+function elem_info(elm, col_width) {
     return _pad(elm.pos + ':' + elm.end, 11) + _pad(t.type_name(elm.type), 12) +
-           ((elm.text != null) ? _pad('<< ' + elm.text + ' >>', 54) : '--no-text--');
-           //((elm.children != null) ? ' has-children' : '') +
-           //((elm.data != null) ? (' @@ ' + ((elm.type !== t.pmd_IMAGE) ? util.inspect(elm.data,false,null) : util.inspect(elm.data.data)) ) : '') + '}';
+           ((elm.text != null) ? _pad('<< ' + elm.text + ' >>', col_width || 54) : '--no-text--');
 }
 
-// STATE =======================================================================
-
-var g_state = {
-    'cur': null, // current element
-    'root': null, // elements dbl-linked list head
-    'extensions': e.pmd_EXTENSIONS, // enabled extensions
-    'elems': [], // elements, indexed by type (int)
-    'refs': {}, // references map (label: element)
-    '_rwaiters': {} // waiters for references, map (label: array of func)
-};
-
-g_state.elems = new Array(t.pmd_NUM_TYPES);
-
+/* return state information string */
 function state_info(state) {
 
     var result = '\n\n';
@@ -214,10 +206,25 @@ function state_info(state) {
     result += '// chain ' + '\n\n';
 
     map_elems(state.root, function(elem) {
-       result += elem.toString() + '\n';
+       result += elem_info(elem) + '\n';
+       if (elem.data) result += '      DATA :: ' + _pad(util.inspect(elem.data,false,3), 66, EOL_STRIP) + '\n';
+       if (elem.children) {
+           result += '      CHLD :: ' + '\n';
+           map_elems(elem.children, function(elem) {
+                result += '            ' + elem_info(elem, 42) + '\n';
+                if (elem.children) {
+                    result += _pad('', 11) + ' CHLD :: ' + '\n';
+                    map_elems(elem.children, function(elem) {
+                        result += _pad('', 20) + elem_info(elem, 34) + '\n';
+                        if (elem.children) result += _pad('', 20) + 'has-children'
+                    });
+                };
+           });
+       }
+       result += '\n';
     });
 
-    result += '\n\n' + '// refs ' + '\n\n';
+    result += '// refs ' + '\n\n';
 
     for (ref_label in state.refs) {
        result += _pad(ref_label, 20) + ' -> ' + state.refs[ref_label] + '\n';
@@ -230,7 +237,7 @@ function state_info(state) {
         if (elems != null) {
             result += '\n# ' + t.type_name(i) + ':\n\n' ;
             for (var j = 0; j < elems.length; j++) {
-                result += elems[j].toString() + '\n';
+                result += elem_info(elems[j]) + '\n';
             };
         }
     }
@@ -246,6 +253,19 @@ function state_info(state) {
 
     return result;
 }
+
+// STATE =======================================================================
+
+var g_state = {
+    'cur': null, // current element
+    'root': null, // elements dbl-linked list head
+    'extensions': e.pmd_EXTENSIONS, // enabled extensions
+    'elems': [], // elements, indexed by type (int)
+    'refs': {}, // references map (label: element)
+    '_rwaiters': {} // waiters for references, map (label: array of func)
+};
+
+g_state.elems = new Array(t.pmd_NUM_TYPES);
 
 g_state.toString = function() { return state_info(this); }
 
