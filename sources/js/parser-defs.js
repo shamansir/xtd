@@ -162,29 +162,26 @@ e.ext_name = function(ext) {
 
 /* pad some string to specified number of chars */
 
-var EOL_NO_STRIP = 0;
-var EOL_STRIP = 1;
-
-function _pad(str, num, strip_eol) {
+function _pad(str, num) {
     var result;
     if (!str) {
         result = '';
         while (num > 0) { result += ' '; num--; }
     } else {
-        if (strip_eol) { str = str.replace(/\n\r?/g, ' '); }
-        if (num > str.length) {
-            result = str;
-            while (num > str.length) { result += ' '; num--; }
-        } else if (num === str.length) {
-            result = str;
+        var src = str.replace(/(\r\n|\n|\r)/gm, ' ');
+        if (num > src.length) {
+            result = src;
+            while (num > src.length) { result += ' '; num--; }
+        } else if (num === src.length) {
+            result = src;
         } else /*if (num < str.length)*/ {
             if (num > 12) {
-               result = str.substring(0, (num / 2) - 3);
+               result = src.substring(0, (num / 2) - 3);
                result += ' ... ';
-               result += str.substring(str.length - ((num / 2) - 3), str.length);
+               result += src.substring(src.length - ((num / 2) - 3), src.length);
                while (num > result.length) { result += ' '; }
             } else {
-               result = str.substring(0, num - 2);
+               result = src.substring(0, num - 2);
                result += '} ';
             }
         }
@@ -193,64 +190,74 @@ function _pad(str, num, strip_eol) {
 }
 
 /* return element information string */
-function elem_info(elm, col_width) {
+function elem_info(elm, col_width, no_pad_text) {
     return _pad(elm.pos + ':' + elm.end, 11) + _pad(t.type_name(elm.type), 12) +
-           ((elm.text != null) ? _pad('<< ' + elm.text + ' >>', col_width || 54) : '--no-text--');
+           ((elm.text != null) ? ((no_pad_text)
+                                     ? ('\n\n~( ' + elm.text + ')~\n\n')
+                                     : (_pad('<< ' + elm.text + ' >>', col_width || 54)) + '\n')
+                               : '--no-text--\n');
 }
 
-var VIEW_QUICK = 0;
-var SHOW_DATA = 1;
-var SHOW_CHLD = 2;
+var V_QUICK = 0;
+var V_SHOW_DATA = 1;
+var V_SHOW_CHLD = 2;
+var V_NO_STRIP_DATA = 4;
+var V_NO_PAD_TEXT = 8;
 
 /* return state information string */
 function state_info(state, view) {
 
-    view = view || VIEW_QUICK;
+    view = view || V_QUICK;
 
     var result = '\n\n';
-    result += '// chain ' + '\n\n';
+    result += '---------------------------- CHAIN ------------------------------------------' + '\n\n';
 
     map_elems(state.root, function(elem) {
-       result += elem_info(elem) + '\n';
-       if (((view & SHOW_DATA) > 0) && elem.data) {
-           result += '      DATA :: '
-                     + _pad(util.inspect(elem.data,false,3), 66, EOL_STRIP) + '\n';
+       result += elem_info(elem, 0, (view & V_NO_PAD_TEXT));
+       if ((view & V_SHOW_DATA) && elem.data) {
+           result += (view !== V_QUICK) ? '' : _pad('',7);
+           result += 'DATA :: '
+                     + ((view & V_NO_STRIP_DATA)
+                         ? ('\n\n' + util.inspect(elem.data,false,3))
+                         : _pad(util.inspect(elem.data,false,3), 66));
+           result += (view !== V_QUICK) ? '\n\n\n' : '\n';
        }
-       if (((view & SHOW_CHLD) > 0) && elem.children) {
-           result += '      CHLD :: ' + '\n';
+       if ((view & V_SHOW_CHLD) && elem.children) {
+           result += (view !== V_QUICK) ? '' : _pad('',7);
+           result += 'CHLD :: ' + '\n';
            map_elems(elem.children, function(elem) {
-                result += '            ' + elem_info(elem, 42) + '\n';
+                result += _pad('', 12) + elem_info(elem, 42, (view & V_NO_PAD_TEXT)) + '\n';
                 if (elem.children) {
                     result += _pad('', 11) + ' CHLD :: ' + '\n';
                     map_elems(elem.children, function(elem) {
-                        result += _pad('', 20) + elem_info(elem, 34) + '\n';
+                        result += _pad('', 20) + elem_info(elem, 34, (view & V_NO_PAD_TEXT)) + '\n';
                         if (elem.children) result += _pad('', 20) + 'has-children'
                     });
+                    if (view !== V_QUICK) result += '\n';
                 };
            });
        }
-       if (view !== VIEW_QUICK) result += '\n';
     });
 
-    result += '// refs ' + '\n\n';
+    result += '\n\n' + '---------------------------- ELEMENTS ---------------------------------------' + '\n';
+
+    for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
+        var elems = state.elems[i];
+        if (elems != null) {
+            result += '\n%%%%%%%%%%%%%%%%% ' + t.type_name(i) + ':\n\n' ;
+            for (var j = 0; j < elems.length; j++) {
+                result += elem_info(elems[j], 0, (view & V_NO_PAD_TEXT));
+            };
+        }
+    }
+
+    result += '\n' + '---------------------------- REFERENCES -------------------------------------' + '\n\n';
 
     for (ref_label in state.refs) {
        result += _pad(ref_label, 20) + ' -> ' + state.refs[ref_label] + '\n';
     };
 
-    result += '\n\n' + '// elems ' + '\n';
-
-    for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
-        var elems = state.elems[i];
-        if (elems != null) {
-            result += '\n# ' + t.type_name(i) + ':\n\n' ;
-            for (var j = 0; j < elems.length; j++) {
-                result += elem_info(elems[j]) + '\n';
-            };
-        }
-    }
-
-    result += '\n\n' + '// links ' + '\n\n';
+    result += '\n\n' + '---------------------------- LINKS ------------------------------------------' + '\n\n';
 
     var elems = state.elems[t.pmd_LINK];
     if (elems != null) {
