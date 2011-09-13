@@ -198,17 +198,25 @@ function elem_info(elm, col_width) {
            ((elm.text != null) ? _pad('<< ' + elm.text + ' >>', col_width || 54) : '--no-text--');
 }
 
+var VIEW_QUICK = 0;
+var SHOW_DATA = 1;
+var SHOW_CHLD = 2;
+
 /* return state information string */
-function state_info(state) {
+function state_info(state, view) {
+
+    view = view || VIEW_QUICK;
 
     var result = '\n\n';
-
     result += '// chain ' + '\n\n';
 
     map_elems(state.root, function(elem) {
        result += elem_info(elem) + '\n';
-       if (elem.data) result += '      DATA :: ' + _pad(util.inspect(elem.data,false,3), 66, EOL_STRIP) + '\n';
-       if (elem.children) {
+       if (((view & SHOW_DATA) > 0) && elem.data) {
+           result += '      DATA :: '
+                     + _pad(util.inspect(elem.data,false,3), 66, EOL_STRIP) + '\n';
+       }
+       if (((view & SHOW_CHLD) > 0) && elem.children) {
            result += '      CHLD :: ' + '\n';
            map_elems(elem.children, function(elem) {
                 result += '            ' + elem_info(elem, 42) + '\n';
@@ -221,7 +229,7 @@ function state_info(state) {
                 };
            });
        }
-       result += '\n';
+       if (view !== VIEW_QUICK) result += '\n';
     });
 
     result += '// refs ' + '\n\n';
@@ -266,6 +274,8 @@ var g_state = {
 };
 
 g_state.elems = new Array(t.pmd_NUM_TYPES);
+
+g_state.info = function(view) { return state_info(this, view); }
 
 g_state.toString = function() { return state_info(this); }
 

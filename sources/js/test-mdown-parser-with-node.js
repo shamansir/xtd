@@ -10,7 +10,7 @@ try {
 
     var result = parser.parse(testContent);
     console.log('=====');
-    console.log('result:', result.toString());
+    console.log('result:', result.info(3 /* SHOW_DATA & SHOW_CHLD */));
 } catch(e) {
     console.log('error',e);
     throw e;
