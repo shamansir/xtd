@@ -4,6 +4,7 @@
 
 var util = require('util');
 
+// =============================================================================
 // ELEMENTS TYPES ==============================================================
 
 var t = new Object(null);
@@ -113,6 +114,7 @@ t.pmd_NUM_TYPES = 31;
 */
 t.pmd_NUM_LANG_TYPES = (t.pmd_NUM_TYPES - 6);
 
+// =============================================================================
 // EXTENSIONS ==================================================================
 
 var e = new Object(null);
@@ -158,10 +160,11 @@ e.ext_name = function(ext) {
     }
 }
 
+// =============================================================================
 // UTILS =======================================================================
 
-/* pad some string to specified number of chars */
-
+/* pad some string to specified number of chars with spaces (if string is longer
+   than specified number of chars, it will be truncated in "start ... end" form) */
 function _pad(str, num) {
     var result;
     if (!str) {
@@ -189,94 +192,39 @@ function _pad(str, num) {
     return result;
 }
 
-/* return element information string */
-function elem_info(elm, col_width, no_pad_text) {
-    return _pad(elm.pos + ':' + elm.end, 11) + _pad(t.type_name(elm.type), 12) +
-           ((elm.text != null) ? ((no_pad_text)
-                                     ? ('\n\n~( ' + elm.text + ')~\n\n')
-                                     : (_pad('<< ' + elm.text + ' >>', col_width || 54)) + '\n')
-                               : '--no-text--\n');
-}
-
-var V_QUICK = 0;
-var V_SHOW_DATA = 1;
-var V_SHOW_CHLD = 2;
-var V_NO_STRIP_DATA = 4;
-var V_NO_PAD_TEXT = 8;
-
-/* return state information string */
-function state_info(state, view) {
-
-    view = view || V_QUICK;
-
-    var result = '\n\n';
-    result += '---------------------------- CHAIN ------------------------------------------' + '\n\n';
-
-    map_elems(state.root, function(elem) {
-       result += elem_info(elem, 0, (view & V_NO_PAD_TEXT));
-       if ((view & V_SHOW_DATA) && elem.data) {
-           result += (view !== V_QUICK) ? '' : _pad('',7);
-           result += 'DATA :: '
-                     + ((view & V_NO_STRIP_DATA)
-                         ? ('\n\n' + util.inspect(elem.data,false,3))
-                         : _pad(util.inspect(elem.data,false,3), 66));
-           result += (view !== V_QUICK) ? '\n\n\n' : '\n';
-       }
-       if ((view & V_SHOW_CHLD) && elem.children) {
-           result += (view !== V_QUICK) ? '' : _pad('',7);
-           result += 'CHLD :: ' + '\n';
-           map_elems(elem.children, function(elem) {
-                result += _pad('', 12) + elem_info(elem, 42, (view & V_NO_PAD_TEXT)) + '\n';
-                if (elem.children) {
-                    result += _pad('', 11) + ' CHLD :: ' + '\n';
-                    map_elems(elem.children, function(elem) {
-                        result += _pad('', 20) + elem_info(elem, 34, (view & V_NO_PAD_TEXT)) + '\n';
-                        if (elem.children) result += _pad('', 20) + 'has-children'
-                    });
-                    if (view !== V_QUICK) result += '\n';
-                };
-           });
-       }
-    });
-
-    result += '\n\n' + '---------------------------- ELEMENTS ---------------------------------------' + '\n';
-
-    for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
-        var elems = state.elems[i];
-        if (elems != null) {
-            result += '\n%%%%%%%%%%%%%%%%% ' + t.type_name(i) + ':\n\n' ;
-            for (var j = 0; j < elems.length; j++) {
-                result += elem_info(elems[j], 0, (view & V_NO_PAD_TEXT));
-            };
+/* walk with a function on a chain of elements. function may return true
+   to stop at current element and return it */
+function map_elems(first, func) {
+    if (first != null) {
+        var cursor = first;
+        while (cursor != null) {
+            if (func(cursor)) { return cursor; }
+            cursor = cursor.next;
         }
     }
-
-    result += '\n' + '---------------------------- REFERENCES -------------------------------------' + '\n\n';
-
-    for (ref_label in state.refs) {
-       result += _pad(ref_label, 20) + ' -> ' + state.refs[ref_label] + '\n';
-    };
-
-    result += '\n\n' + '---------------------------- LINKS ------------------------------------------' + '\n\n';
-
-    var elems = state.elems[t.pmd_LINK];
-    if (elems != null) {
-        for (var j = 0; j < elems.length; j++) {
-            result += _pad(elems[j].data.title, 16) + _pad(elems[j].data.label, 12) + _pad(elems[j].data.source, 27) + _pad(elems[j].text, 23) + '\n';
-        };
-    }
-
-    return result;
 }
 
+/* reverse-walk with a function on a chain of elements. function may return true
+   to stop at current element and return it */
+function rmap_elems(last, func) {
+    if (last != null) {
+        var cursor = last;
+        while (cursor != null) {
+            if (func(cursor)) { return cursor; }
+            cursor = cursor.prev;
+        }
+    }
+}
+
+// =============================================================================
 // STATE =======================================================================
 
 var g_state = {
-    'cur': null, // current element
-    'root': null, // elements dbl-linked list head
+    'chain': { 'head': null, 'tail': null }, // dbl-linked list of elements
     'extensions': e.pmd_EXTENSIONS, // enabled extensions
     'elems': [], // elements, indexed by type (int)
     'refs': {}, // references map (label: element)
+    '_cur': null, // last processed element
     '_rwaiters': {} // waiters for references, map (label: array of func)
 };
 
@@ -293,34 +241,19 @@ g_state.toString = function() { return state_info(this); }
 
 } */
 
-// TODO: think about indentation, allow 3-spaces indent for lists?
-
-// FUNCTIONS ===================================================================
-
-/* map a function to a chain of elements */
-function map_elems(first, func) {
-    if (first != null) {
-        var cursor = first;
-        while (cursor != null) {
-            if (func) func(cursor);
-            cursor = cursor.next;
-        }
-    }
-}
-
-function _elem_info() { return elem_info(this); }
+// =============================================================================
+// ELEMENTS ====================================================================
 
 /* create element node with specified parameters */
 function make_element_i(state, type, pos, end, text) {
-    //console.log('make_element: ', t.type_name(type), pos, end, text);
     return { 'type'       : type,
              'pos'        : pos,
              'end'        : end,
              'next'       : null,
              'prev'       : null,
-             'text'       : text || null,
-             'children'   : null, // elements inside this one
-             'data'       : null,
+             'text'       : text || null, // a match for the element or the text extract
+             'children'   : { 'head': null, 'tail': null }, // dbl-linked list of elements inside
+             'data'       : null, // additional data that cannot be represented with text
              'toString'   : _elem_info };
 }
 
@@ -328,22 +261,66 @@ function make_element(state, type, chunk) {
     return make_element_i(state, type, chunk.pos, chunk.end, chunk.match);
 }
 
+function _elem_info() { return elem_info(this); }
+
+/* insert element in proper position in elements chain */
+function insert_in_chain(elem, chain) {
+
+    if (chain.head == null) {
+
+        console.log(elem + ' added to head');
+
+        chain.head = elem;
+        chain.tail = elem;
+
+    } else {
+
+        // find first element which end position is less than current element end position
+        // next element to it will be the element that may be wraps it. if not,
+        // then insert this element after the element found.
+
+        console.log('cur is ' + elem);
+
+        var cursor = chain.tail;
+        while (cursor.prev != null) {
+            cursor = cursor.prev;
+            if (cursor.end < elem.end) {
+                break;
+            }
+        }
+
+        console.log('cursor is ' + cursor);
+
+        var next = cursor || chain.tail;
+
+        console.log('next is ' + next);
+
+        if (next.pos > elem.pos) {
+            // next element is after the current
+            elem.next = next;
+            elem.prev = next.prev;
+            next.prev = elem;
+        } else {
+            // next element wraps it
+            insert_in_chain(elem, next.children);
+        }
+
+    }
+
+    console.log('-------------');
+
+}
+
 /* add element and some data (optional) to the state */
 function add_element(state, elem, data) {
-    //console.log('add: ', elem);
 
-    if (state.root == null) {
-        state.root = elem || null;
-    }
+    if (!elem) return;
 
-    if (state.cur != null) {
-        state.cur.next = elem;
-        elem.prev = null;
-    }
+    insert_in_chain(elem, state.chain);
 
-    state.cur = elem;
+    state._cur = elem;
 
-    if (state.elems[elem.type] == null) {
+    if (!state.elems[elem.type]) {
         state.elems[elem.type] = [];
     }
     state.elems[elem.type].push(elem);
@@ -352,11 +329,17 @@ function add_element(state, elem, data) {
 
 };
 
+// =============================================================================
+// EXTENSIONS ==================================================================
+
 /* check if extension is enabled */
 function extension(state, extension) {
     //console.log('extension: ', e.ext_name(extension), state.extensions & extension);
     return state.extensions & extension;
 };
+
+// =============================================================================
+// REFERENCES ==================================================================
 
 /* save reference data for a label */
 function save_reference(state, label, elm) {
@@ -404,6 +387,7 @@ function release_waiters(state) {
     }
 }
 
+// =============================================================================
 // GLOBAL ======================================================================
 
 /* executed before parsing */
@@ -416,11 +400,10 @@ function after(state) {
     // things to do after parsing
     release_waiters(state);
 
-    // sort_by_pos(state)
-    // pack_children(state)
-    // parse_lists(state)
+    // parse_block_elems(state)
 }
 
+// =============================================================================
 // ALIAS =======================================================================
 
 function elem(x,c)         { return make_element(g_state,x,c) } // type and chunk
@@ -440,6 +423,7 @@ function wait_ref(x,f)     { return wait_reference(g_state,x,f) }
 function start()           { return before(g_state) }
 function end()             { return after(g_state) }
 
+// =============================================================================
 // EXPORT ======================================================================
 
 module.exports = {
@@ -469,4 +453,87 @@ module.exports = {
     'TYPESTR': t.type_name,
     'EXTSTR': e.ext_name
 };
+
+// =============================================================================
+// INFORMATION =================================================================
+
+/* return element information string */
+function elem_info(elm, col_width, no_pad_text) {
+    return _pad(elm.pos + ':' + elm.end, 11) + _pad(t.type_name(elm.type), 12) +
+           ((elm.text != null) ? ((no_pad_text)
+                                     ? ('\n\n~( ' + elm.text + ')~\n\n')
+                                     : (_pad('<< ' + elm.text + ' >>', col_width || 54)) + '\n')
+                               : '--no-text--\n');
+}
+
+var V_QUICK = 0;
+var V_SHOW_DATA = 1;
+var V_SHOW_CHLD = 2;
+var V_NO_STRIP_DATA = 4;
+var V_NO_PAD_TEXT = 8;
+
+/* return state information string */
+function state_info(state, view) {
+
+    view = view || V_QUICK;
+
+    var result = '\n\n';
+    result += '---------------------------- CHAIN ------------------------------------------' + '\n\n';
+
+    map_elems(state.chain.head, function(elem) {
+       result += elem_info(elem, 0, (view & V_NO_PAD_TEXT));
+       if ((view & V_SHOW_DATA) && elem.data) {
+           result += (view !== V_QUICK) ? '' : _pad('',7);
+           result += 'DATA :: '
+                     + ((view & V_NO_STRIP_DATA)
+                         ? ('\n\n' + util.inspect(elem.data,false,3))
+                         : _pad(util.inspect(elem.data,false,3), 66));
+           result += (view !== V_QUICK) ? '\n\n\n' : '\n';
+       }
+       if ((view & V_SHOW_CHLD) && elem.children.head) {
+           result += (view !== V_QUICK) ? '' : _pad('',7);
+           result += 'CHLD :: ' + '\n';
+           map_elems(elem.children.head, function(ielem) {
+                result += _pad('', 12) + elem_info(ielem, 42, (view & V_NO_PAD_TEXT)) + '\n';
+                if (ielem.children.head) {
+                    result += _pad('', 11) + ' CHLD :: ' + '\n';
+                    map_elems(ielem.children.head, function(iielem) {
+                        result += _pad('', 20) + elem_info(iielem, 34, (view & V_NO_PAD_TEXT)) + '\n';
+                        if (iielem.children.head) result += _pad('', 20) + 'has-children'
+                    });
+                    if (view !== V_QUICK) result += '\n';
+                };
+           });
+       }
+    });
+
+    result += '\n\n' + '---------------------------- ELEMENTS ---------------------------------------' + '\n';
+
+    for (var i = 0; i < t.pmd_NUM_TYPES; i++) {
+        var elems = state.elems[i];
+        if (elems != null) {
+            result += '\n%%%%%%%%%%%%%%%%% ' + t.type_name(i) + ':\n\n' ;
+            for (var j = 0; j < elems.length; j++) {
+                result += elem_info(elems[j], 0, (view & V_NO_PAD_TEXT));
+            };
+        }
+    }
+
+    result += '\n' + '---------------------------- REFERENCES -------------------------------------' + '\n\n';
+
+    for (ref_label in state.refs) {
+       result += _pad(ref_label, 20) + ' -> ' + state.refs[ref_label] + '\n';
+    };
+
+    result += '\n\n' + '---------------------------- LINKS ------------------------------------------' + '\n\n';
+
+    var elems = state.elems[t.pmd_LINK];
+    if (elems != null) {
+        for (var j = 0; j < elems.length; j++) {
+            result += _pad(elems[j].data.title, 16) + _pad(elems[j].data.label, 12) + _pad(elems[j].data.source, 27) + _pad(elems[j].text, 23) + '\n';
+        };
+    }
+
+    return result;
+}
 
