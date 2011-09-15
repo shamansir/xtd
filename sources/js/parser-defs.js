@@ -268,8 +268,6 @@ function insert_in_chain(elem, chain) {
 
     if (chain.head == null) {
 
-        console.log(elem + ' added to head');
-
         chain.head = elem;
         chain.tail = elem;
 
@@ -314,8 +312,6 @@ function insert_in_chain(elem, chain) {
         }
 
     }
-
-    console.log('-------------');
 
 }
 
