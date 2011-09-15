@@ -141,7 +141,7 @@ Bullet = !HorizontalRule NonindentSpace s:LocMarker ('+' / '*' / '-') Spacechar+
 
 Enumerator = NonindentSpace [0-9]+ '.' Spacechar+
 
-BulletList = &Bullet  data:(ListTightBullet / ListLooseBullet)
+BulletList = &Bullet data:(ListTightBullet / ListLooseBullet)
              { d.add(d.elem_ct(t.pmd_LIST_BULLET,_chunk,extractListText(data)),data) }
 
 OrderedList = &Enumerator data:(ListTightEnumerator / ListLooseEnumerator)

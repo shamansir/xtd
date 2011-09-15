@@ -276,33 +276,41 @@ function insert_in_chain(elem, chain) {
     } else {
 
         // find first element which end position is less than current element end position
-        // next element to it will be the element that may be wraps it. if not,
+        // next element (at right) to it will be the element that may be wraps it. if not,
         // then insert this element after the element found.
 
-        console.log('cur is ' + elem);
-
         var cursor = chain.tail;
-        while (cursor.prev != null) {
-            cursor = cursor.prev;
-            if (cursor.end < elem.end) {
+        while (cursor != null) {
+            if (cursor.end <= elem.pos) {
                 break;
             }
+            cursor = cursor.prev;
         }
 
-        console.log('cursor is ' + cursor);
+        var at_right = (cursor != null) ? cursor.next : chain.head;
 
-        var next = cursor || chain.tail;
+        // FIXME: see all-types-links, not all of elements inserted correctly as children
+        //        (images and links and paragraphs, for example)
 
-        console.log('next is ' + next);
-
-        if (next.pos > elem.pos) {
-            // next element is after the current
-            elem.next = next;
-            elem.prev = next.prev;
-            next.prev = elem;
-        } else {
-            // next element wraps it
-            insert_in_chain(elem, next.children);
+        if (at_right == null) { // cursor is a tail, append element to it
+            elem.next = null;
+            elem.prev = cursor;
+            cursor.next = elem;
+            chain.tail = elem;
+        } else if (elem.pos < at_right.pos) { // insert before element at right
+            elem.next = at_right;
+            elem.prev = at_right.prev;
+            at_right.prev = elem;
+            if (cursor == null) {
+                chain.head = elem; // set as new head (at_right is a head)
+            } else {
+                cursor.next = elem; // insert after cursor, before at right
+            }
+        } else { // check if it fits as child
+            if (elem.end > at_right.end) {
+                throw new Error('cannot determine if this element child or not');
+            }
+            insert_in_chain(elem, at_right.children);
         }
 
     }
