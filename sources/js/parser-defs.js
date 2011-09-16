@@ -264,53 +264,91 @@ function make_element(state, type, chunk) {
 function _elem_info() { return elem_info(this); }
 
 /* insert element in proper position in elements chain */
-function insert_in_chain(elem, chain) {
+function insert_in_chain(elem, chain, deep) {
+
+    deep = deep || 0;
+    var pref = _pad('', deep * 4);
+
+    console.log(pref + '---------------------');
+    console.log(pref + 'WORKING WITH ' + elem);
 
     if (chain.head == null) {
+
+        elem.prev = null;
+        elem.next = null;
 
         chain.head = elem;
         chain.tail = elem;
 
-    } else {
+        console.log(pref + 'PLACED IN HEAD: ' + elem);
 
-        // find first element which end position is less than current element end position
-        // next element (at right) to it will be the element that may be wraps it. if not,
-        // then insert this element after the element found.
+        return;
 
-        var cursor = chain.tail;
-        while (cursor != null) {
-            if (cursor.end <= elem.pos) {
-                break;
-            }
-            cursor = cursor.prev;
+    }
+
+    // find first element which end position is less than current element end position
+    // next element (at right) to it will be the element that may be wraps it. if not,
+    // then insert this element after the element found.
+
+    var cursor = chain.tail;
+    while (cursor != null) {
+        console.log(pref + 'checking ' + cursor);
+        if (cursor.end <= elem.pos) {
+            break;
         }
+        cursor = cursor.prev;
+    }
 
-        var at_right = (cursor != null) ? cursor.next : chain.head;
+    console.log(pref + 'final cursor is ' + cursor);
 
-        // FIXME: see all-types-links, not all of elements inserted correctly as children
-        //        (images and links and paragraphs, for example)
+    var at_right = (cursor != null) ? cursor.next : chain.head;
 
-        if (at_right == null) { // cursor is a tail, append element to it
-            elem.next = null;
-            elem.prev = cursor;
-            cursor.next = elem;
-            chain.tail = elem;
-        } else if (elem.pos < at_right.pos) { // insert before element at right
+    console.log(pref + 'at_right is ' + at_right);
+
+    // FIXME: algorythm is too complex, may be find easier way
+
+    if (at_right == null) { // cursor is a tail, append element to it
+        elem.next = null;
+        elem.prev = cursor;
+        cursor.next = elem;
+        chain.tail = elem;
+        console.log(pref + 'ATTACHED TO TAIL:' + elem);
+    } else if (elem.pos < at_right.pos) {
+        if (elem.end < at_right.end) { // insert before element at right
             elem.next = at_right;
             elem.prev = at_right.prev;
             at_right.prev = elem;
             if (cursor == null) {
                 chain.head = elem; // set as new head (at_right is a head)
+                console.log(pref + 'INSERTED IN HEAD:' + elem);
             } else {
-                cursor.next = elem; // insert after cursor, before at right
+                cursor.next = elem; // insert after cursor, before at_right
+                console.log(pref + 'INSERTED IN CHAIN AFTER CURSOR: ' + elem);
             }
-        } else { // check if it fits as child
-            if (elem.end > at_right.end) {
-                throw new Error('cannot determine if this element child or not');
+        } else { // insert at_right inside current element and place element in its place
+            elem.prev = at_right.prev;
+            elem.next = at_right.next;
+            if (elem.next != null) {
+                elem.next.prev = elem;
+            } else { // at_right is a tail
+                chain.tail = elem;
             }
-            insert_in_chain(elem, at_right.children);
+            if (elem.prev != null) {
+                elem.prev.next = elem;
+            } else { // at right is a head
+                chain.head = elem;
+            }
+            at_right.prev = null;
+            at_right.next = null;
+            console.log(pref + 'REPLACED AT_RIGHT WITH : ' + elem);
+            console.log(pref + 'GOING DEEP WITH: ' + at_right);
+            insert_in_chain(at_right, elem.children, deep + 1);
         }
-
+    } else if (elem.end <= at_right.end) { // check if it fits as child
+        console.log(pref + 'GOING DEEP WITH: ' + elem);
+        insert_in_chain(elem, at_right.children, deep + 1);
+    } else {
+        throw new Error(pref + 'No place found for elm ' + elem);
     }
 
 }
