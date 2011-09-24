@@ -389,8 +389,9 @@ function insert_in_chain(chain, elem, deep) {
                             // so append element as a tail
         _c_set_tail(chain, elem);
         console.log(pref + 'ATTACHED TO TAIL:' + elem);
-    } else if (elem.pos < at_right.pos) {
-        if (elem.end < at_right.end) { // insert before element at right
+    } else if (elem.pos <= at_right.pos) {
+        if ((elem.pos != at_right.pos) &&
+            (elem.end < at_right.end)) { // insert before element at right
             _c_insert_before(chain, elem, at_right);
             console.log(pref + 'INSERTED IN ' + (at_right.prev ? 'HEAD' : 'CHAIN AFTER CURSOR') + ': ' + elem);
         } else { // place element in place of at_right and then insert at_right inside current element
