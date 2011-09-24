@@ -263,8 +263,92 @@ function make_element(state, type, chunk) {
 
 function _elem_info() { return elem_info(this); }
 
+// [ chain operations ]
+
+/* init chain with element: set element to be a head and a tail of a chain */
+function _c_init(chain, elem) {
+    elem.prev = null;
+    elem.next = null;
+    chain.head = elem;
+    chain.tail = elem;
+}
+
+/* set element as a head of a chain */
+function _c_set_head(chain, elem) {
+    elem.prev = null;
+    elem.next = chain.head;
+    chain.head.prev = elem;
+    chain.head = elem;
+}
+
+/* set element as a tail of a chain */
+function _c_set_tail(chain, elem) {
+    elem.next = null;
+    elem.prev = chain.tail;
+    chain.tail.next = elem;
+    chain.tail = elem;
+}
+
+/* find first element which end position is less than passed element position */
+function _c_find_prev(chain, elem) {
+    var cursor = chain.tail;
+    while (cursor != null) {
+        if (cursor.end <= elem.pos) {
+            return cursor;
+        }
+        cursor = cursor.prev;
+    }
+    return null;
+}
+
+/* insert element in chain before element at_right */
+function _c_insert_before(chain, elem, at_right) {
+    elem.next = at_right;
+    elem.prev = at_right.prev;
+    if (at_right.prev == null) {
+        chain.head = elem; // set as new head (at_right is a head)
+    } else {
+        at_right.prev.next = elem; // let previous element point at new
+    }
+    at_right.prev = elem;
+}
+
+/* replace element in chain with another element */
+function _c_replace(chain, what_, with_) {
+    with_.prev = what_.prev;
+    with_.next = what_.next;
+    if (what_.next != null) {
+        what_.next.prev = with_;
+    } else { // what_ is a tail
+        chain.tail = with_;
+    }
+    if (what_.prev != null) {
+        what_.prev.next = with_;
+    } else { // what_ is a head
+        chain.head = with_;
+    }
+    what_.prev = null;
+    what_.next = null;
+}
+
+/* remove element from chain */
+function _c_remove(chain, elem) {
+    if (elem.prev != null) {
+        elem.prev.next = elem.next;
+    } else { // elem is head
+        chain.head = elem.next;
+    }
+    if (elem.next != null) {
+        elem.next.prev = elem.prev;
+    } else {
+        chain.tail = elem.prev;
+    }
+    elem.prev = null;
+    elem.next = null;
+}
+
 /* insert element in proper position in elements chain */
-function insert_in_chain(elem, chain, deep) {
+function insert_in_chain(chain, elem, deep) {
 
     deep = deep || 0;
     var pref = _pad('', deep * 4);
@@ -274,13 +358,10 @@ function insert_in_chain(elem, chain, deep) {
 
     if (chain.head == null) {
 
-        elem.prev = null;
-        elem.next = null;
+        // set element as a head and a tail
+        _c_init(chain, elem);
 
-        chain.head = elem;
-        chain.tail = elem;
-
-        console.log(pref + 'PLACED IN HEAD: ' + elem);
+        console.log(pref + 'PLACED IN HEAD AND TAIL: ' + elem);
 
         return;
 
@@ -290,63 +371,51 @@ function insert_in_chain(elem, chain, deep) {
     // next element (at right) to it will be the element that may be wraps it. if not,
     // then insert this element after the element found.
 
-    var cursor = chain.tail;
-    while (cursor != null) {
-        console.log(pref + 'checking ' + cursor);
-        if (cursor.end <= elem.pos) {
-            break;
-        }
-        cursor = cursor.prev;
-    }
+    var prev = _c_find_prev(chain, elem);
 
-    console.log(pref + 'final cursor is ' + cursor);
+    console.log(pref + 'previous is ' + prev);
 
-    var at_right = (cursor != null) ? cursor.next : chain.head;
+    var at_right = (prev != null) ? prev.next : chain.head;
 
     console.log(pref + 'at_right is ' + at_right);
 
-    // FIXME: algorythm is too complex, may be find easier way
+    // FIXME: algorithm is too complex, may be find easier way
+    // TODO: or change to functions to make it more readable
 
-    if (at_right == null) { // cursor is a tail, append element to it
-        elem.next = null;
-        elem.prev = cursor;
-        cursor.next = elem;
-        chain.tail = elem;
+    // FIXME: not all of children are inserted into parent (need to scroll
+    // further when replaced child with wrapping element)
+
+    if (at_right == null) { // prev.next is null, so prev in fact is a tail,
+                            // so append element as a tail
+        _c_set_tail(chain, elem);
         console.log(pref + 'ATTACHED TO TAIL:' + elem);
     } else if (elem.pos < at_right.pos) {
         if (elem.end < at_right.end) { // insert before element at right
-            elem.next = at_right;
-            elem.prev = at_right.prev;
-            at_right.prev = elem;
-            if (cursor == null) {
-                chain.head = elem; // set as new head (at_right is a head)
-                console.log(pref + 'INSERTED IN HEAD:' + elem);
-            } else {
-                cursor.next = elem; // insert after cursor, before at_right
-                console.log(pref + 'INSERTED IN CHAIN AFTER CURSOR: ' + elem);
-            }
-        } else { // insert at_right inside current element and place element in its place
-            elem.prev = at_right.prev;
-            elem.next = at_right.next;
-            if (elem.next != null) {
-                elem.next.prev = elem;
-            } else { // at_right is a tail
-                chain.tail = elem;
-            }
-            if (elem.prev != null) {
-                elem.prev.next = elem;
-            } else { // at right is a head
-                chain.head = elem;
-            }
-            at_right.prev = null;
-            at_right.next = null;
+            _c_insert_before(chain, elem, at_right);
+            console.log(pref + 'INSERTED IN ' + (at_right.prev ? 'HEAD' : 'CHAIN AFTER CURSOR') + ': ' + elem);
+        } else { // place element in place of at_right and then insert at_right inside current element
+            _c_replace(chain, at_right, elem);
             console.log(pref + 'REPLACED AT_RIGHT WITH : ' + elem);
             console.log(pref + 'GOING DEEP WITH: ' + at_right);
-            insert_in_chain(at_right, elem.children, deep + 1);
+            insert_in_chain(elem.children, at_right, deep + 1);
+            console.log(pref + 'OUT OF THE DEEP');
+            var cursor = elem.next;
+            while (cursor != null) {
+                console.log(pref + 'checking ' + cursor + ' if it fits ' + elem);
+                if (cursor.pos > elem.end) { return; }
+                var _next = cursor.next; // it may be replaced with further actions
+                if (cursor.end <= elem.end) {
+                    console.log(pref + 'it fits, REMOVING AND GOING DEEP WITH: ' + cursor);
+                    _c_remove(chain, cursor);
+                    insert_in_chain(elem.children, cursor, deep + 1);
+                    console.log(pref + 'OUT OF THE DEEP');
+                }
+                cursor = _next;
+            }
         }
     } else if (elem.end <= at_right.end) { // check if it fits as child
         console.log(pref + 'GOING DEEP WITH: ' + elem);
-        insert_in_chain(elem, at_right.children, deep + 1);
+        insert_in_chain(at_right.children, elem, deep + 1);
     } else {
         throw new Error(pref + 'No place found for elm ' + elem);
     }
@@ -358,7 +427,7 @@ function add_element(state, elem, data) {
 
     if (!elem) return;
 
-    insert_in_chain(elem, state.chain);
+    insert_in_chain(state.chain, elem);
 
     state._cur = elem;
 
