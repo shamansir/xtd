@@ -351,21 +351,10 @@ function _c_remove(chain, elem) {
 // deep specifies the level of how deep we gone, its optional and set by recursion
 function _c_insert(chain, elem, deep) {
 
-    deep = deep || 0;
-    var pref = _pad('', deep * 4);
-
-    console.log(pref + '---------------------');
-    console.log(pref + 'WORKING WITH ' + elem);
-
     if (chain.head == null) {
-
         // set element as a head and a tail
         _c_init(chain, elem);
-
-        console.log(pref + 'PLACED IN HEAD AND TAIL: ' + elem);
-
         return;
-
     }
 
     // find first element which end position is less than current element end position
@@ -373,44 +362,30 @@ function _c_insert(chain, elem, deep) {
     // then insert this element after the element found.
 
     var prev = _c_find_prev(chain, elem);
-
-    console.log(pref + 'previous is ' + prev);
-
     var at_right = (prev != null) ? prev.next : chain.head;
-
-    console.log(pref + 'at_right is ' + at_right);
 
     if (at_right == null) { // prev.next is null, so prev in fact is a tail,
                             // so append element as a tail
         _c_set_tail(chain, elem);
-        console.log(pref + 'ATTACHED TO TAIL:' + elem);
     } else if (elem.pos <= at_right.pos) {
         if ((elem.pos != at_right.pos) &&
             (elem.end < at_right.end)) { // insert before element at right
             _c_insert_before(chain, elem, at_right);
-            console.log(pref + 'INSERTED IN ' + (at_right.prev ? 'HEAD' : 'CHAIN AFTER CURSOR') + ': ' + elem);
         } else { // place element in place of at_right and then insert at_right inside current element
             _c_replace(chain, at_right, elem);
-            console.log(pref + 'REPLACED AT_RIGHT WITH : ' + elem);
-            console.log(pref + 'GOING DEEP WITH: ' + at_right);
             _c_insert(elem.children, at_right, deep + 1);
-            console.log(pref + 'OUT OF THE DEEP');
             var cursor = elem.next;
             while (cursor != null) {
-                console.log(pref + 'checking ' + cursor + ' if it fits ' + elem);
                 if (cursor.pos > elem.end) { return; }
                 var _next = cursor.next; // it may be replaced with further actions
                 if (cursor.end <= elem.end) {
-                    console.log(pref + 'it fits, REMOVING AND GOING DEEP WITH: ' + cursor);
                     _c_remove(chain, cursor);
                     _c_insert(elem.children, cursor, deep + 1);
-                    console.log(pref + 'OUT OF THE DEEP');
                 }
                 cursor = _next;
             }
         }
     } else if (elem.end <= at_right.end) { // check if it fits as child
-        console.log(pref + 'GOING DEEP WITH: ' + elem);
         _c_insert(at_right.children, elem, deep + 1);
     } else {
         throw new Error(pref + 'No place found for elm ' + elem);
