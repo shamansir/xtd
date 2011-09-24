@@ -348,7 +348,8 @@ function _c_remove(chain, elem) {
 }
 
 /* insert element in proper position in elements chain */
-function insert_in_chain(chain, elem, deep) {
+// deep specifies the level of how deep we gone, its optional and set by recursion
+function _c_insert(chain, elem, deep) {
 
     deep = deep || 0;
     var pref = _pad('', deep * 4);
@@ -379,12 +380,6 @@ function insert_in_chain(chain, elem, deep) {
 
     console.log(pref + 'at_right is ' + at_right);
 
-    // FIXME: algorithm is too complex, may be find easier way
-    // TODO: or change to functions to make it more readable
-
-    // FIXME: not all of children are inserted into parent (need to scroll
-    // further when replaced child with wrapping element)
-
     if (at_right == null) { // prev.next is null, so prev in fact is a tail,
                             // so append element as a tail
         _c_set_tail(chain, elem);
@@ -398,7 +393,7 @@ function insert_in_chain(chain, elem, deep) {
             _c_replace(chain, at_right, elem);
             console.log(pref + 'REPLACED AT_RIGHT WITH : ' + elem);
             console.log(pref + 'GOING DEEP WITH: ' + at_right);
-            insert_in_chain(elem.children, at_right, deep + 1);
+            _c_insert(elem.children, at_right, deep + 1);
             console.log(pref + 'OUT OF THE DEEP');
             var cursor = elem.next;
             while (cursor != null) {
@@ -408,7 +403,7 @@ function insert_in_chain(chain, elem, deep) {
                 if (cursor.end <= elem.end) {
                     console.log(pref + 'it fits, REMOVING AND GOING DEEP WITH: ' + cursor);
                     _c_remove(chain, cursor);
-                    insert_in_chain(elem.children, cursor, deep + 1);
+                    _c_insert(elem.children, cursor, deep + 1);
                     console.log(pref + 'OUT OF THE DEEP');
                 }
                 cursor = _next;
@@ -416,7 +411,7 @@ function insert_in_chain(chain, elem, deep) {
         }
     } else if (elem.end <= at_right.end) { // check if it fits as child
         console.log(pref + 'GOING DEEP WITH: ' + elem);
-        insert_in_chain(at_right.children, elem, deep + 1);
+        _c_insert(at_right.children, elem, deep + 1);
     } else {
         throw new Error(pref + 'No place found for elm ' + elem);
     }
@@ -428,7 +423,7 @@ function add_element(state, elem, data) {
 
     if (!elem) return;
 
-    insert_in_chain(state.chain, elem);
+    _c_insert(state.chain, elem);
 
     state._cur = elem;
 
