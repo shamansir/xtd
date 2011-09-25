@@ -414,7 +414,7 @@ function add_element(state, elem, data) {
 
     elem.data = data;
 
-};
+}
 
 // =============================================================================
 // EXTENSIONS ==================================================================
@@ -475,6 +475,31 @@ function release_waiters(state) {
 }
 
 // =============================================================================
+// SPECIAL =====================================================================
+
+function parse_bquote(bquote) {
+    //var bquote_res = $_parser.parse(bquote.text);
+}
+
+function parse_list_data(list) {
+}
+
+function parse_block_elems(state) {
+    var bullets = state.elems[t.pmd_LIST_BULLET];
+    for (var idx = 0; idx < bullets.length; idx++) {
+        parse_list_data(bullets[idx]);
+    }
+    var enums = state.elems[t.pmd_LIST_ENUMERATOR];
+    for (var idx = 0; idx < enums.length; idx++) {
+        parse_list_data(enums[idx]);
+    }
+    var bquotes = state.elems[t.pmd_BLOCKQUOTE];
+    for (var idx = 0; idx < bquotes.length; idx++) {
+        parse_bquote(bquotes[idx]);
+    }
+}
+
+// =============================================================================
 // GLOBAL ======================================================================
 
 /* executed before parsing */
@@ -487,7 +512,7 @@ function after(state) {
     // things to do after parsing
     release_waiters(state);
     //console.log($_parser);
-    // parse_block_elems(state)
+    parse_block_elems(state);
 }
 
 // =============================================================================
@@ -548,7 +573,7 @@ module.exports = {
 function elem_info(elm, col_width, no_pad_text) {
     return _pad(elm.pos + ':' + elm.end, 11) + _pad(t.type_name(elm.type), 12) +
            ((elm.text != null) ? ((no_pad_text)
-                                     ? ('\n\n~( ' + elm.text + ')~\n\n')
+                                     ? ('\n\n~( ' + elm.text + ' )~\n\n')
                                      : (_pad('<< ' + elm.text + ' >>', col_width || 54)) + '\n')
                                : '--no-text--\n');
 }

@@ -47,6 +47,11 @@ djjdjd
 
 1. Ordered list
 With several lines,alhtough
+     Line with 5 spaces at left
+    Line with 4 spaces at left
+Line with 0 spaces at left
+
+    And this is second paragraph of first item
  1. An asterix * and *strong* inside
  1. One more item
 
