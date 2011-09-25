@@ -1,12 +1,15 @@
 /*
- * PegJS Markdown Parser - Tree Generator, JS part is programmed by
+ * ============= PEGJS MARKDOWN PARSER: TREE GENERATOR =========================
+ *
+ * PegJS Markdown Parser: Tree Generator, JavaScript part is programmed by
  * Ulric Wilfred <shaman.sir@gmail.com>, http://shamansir.github.com
  *
- * PEG rules and the idea are taken and adapted to PegJS from PegC version written by Ali Rantakari
- * PegC version in its turn is written using PEG grammar from John MacFarlane
+ * PEG rules and the idea are taken and adapted to PegJS from PegC version written
+ * by Ali Rantakari. PegC version in its turn is written using PEG grammar
+ * from John MacFarlane
  *
  * === ORIGINAL COMMENT: ===
-
+ *
  * PEG Markdown Highlight
  * Copyright 2011 Ali Rantakari -- http://hasseg.org
  * Licensed under the GPL2+ and MIT licenses (see LICENSE for more info).
@@ -654,9 +657,4 @@ InlineNote =    &{ d.ext(e.pmd_EXT_FOOTNOTES) }
 
 RawNoteBlock =  ( !BlankLine OptionallyIndentedLine )+
                 ( BlankLine* )
-
-{
-   console.log('releasing');
-   d.release_ref();
-}
 

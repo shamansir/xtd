@@ -5,9 +5,10 @@ var pegPath = process.cwd() + '/../peg';
 
 try {
     var parser = PEG.buildParser(
-                  fs.readFileSync(pegPath + '/markdown.pegjs', 'utf-8'));
+                 fs.readFileSync(pegPath + '/markdown.pegjs', 'utf-8'));
     var testContent = fs.readFileSync(pegPath + '/mdown-test/progressing.md', 'utf-8');
 
+    $_parser = parser; // a global variable to use from inside parse process
     var result = parser.parse(testContent);
     console.log('=====');
     console.log('result:',
