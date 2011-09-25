@@ -166,13 +166,15 @@ ListItemBullet = s:LocMarker Bullet
                  o:LocMarker
                  start:ListBlock
                  cont:( ( ListContinuationBlock )* )
-                 { return [s,(o-s),packListData(start, cont)] }
+                 { return [s,(o-s),packListData(start, cont),
+                                   _chunk.match.substring(o-s)] }
 
 ListItemEnumerator = s:LocMarker Enumerator
                      o:LocMarker
                      start:ListBlock
                      cont:( ( ListContinuationBlock )* )
-                     { return [s,(o-s),packListData(start, cont)] }
+                     { return [s,(o-s),packListData(start, cont),
+                                       _chunk.match.substring(o-s)] }
 
 ListItemTightBullet =
                 s:LocMarker Bullet
@@ -181,7 +183,8 @@ ListItemTightBullet =
                 cont:( ( !BlankLine
                          i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
-                { return [s,(o-s),packListData(start, cont)] }
+                { return [s,(o-s),packListData(start, cont),
+                                  _chunk.match.substring(o-s)] }
 
 ListItemTightEnumerator =
                 s:LocMarker Enumerator
@@ -190,7 +193,8 @@ ListItemTightEnumerator =
                 cont:( ( !BlankLine
                          i:ListContinuationBlock { return i } )* )
                 !ListContinuationBlock
-                { return [s,(o-s),packListData(start, cont)] }
+                { return [s,(o-s),packListData(start, cont),
+                                  _chunk.match.substring(o-s)] }
 
 ListBlock = !BlankLine start:Line
             cont:( ( ListBlockLine )* )

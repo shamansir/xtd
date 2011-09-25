@@ -160,6 +160,9 @@ e.ext_name = function(ext) {
     }
 }
 
+var CRLF = /(\r\n|\n|\r)/gm;
+var TWICE_CRLF = /\r\n\r\n|\n\n|\r\r/;
+
 // =============================================================================
 // UTILS =======================================================================
 
@@ -171,7 +174,7 @@ function _pad(str, num) {
         result = '';
         while (num > 0) { result += ' '; num--; }
     } else {
-        var src = str.replace(/(\r\n|\n|\r)/gm, ' ');
+        var src = str.replace(CRLF, ' ');
         if (num > src.length) {
             result = src;
             while (num > src.length) { result += ' '; num--; }
@@ -482,16 +485,23 @@ function parse_bquote(bquote) {
 }
 
 function parse_list_data(list) {
+    console.log('~~~~~~~');
+    for (var item_id = 0; item_id < list.length; item_id++) {
+        var start = list[item_id][0];
+        var offset = list[item_id][1];
+        var text = list[item_id][3];
+        console.log(start, offset, text.split(TWICE_CRLF));
+    }
 }
 
 function parse_block_elems(state) {
     var bullets = state.elems[t.pmd_LIST_BULLET];
     for (var idx = 0; idx < bullets.length; idx++) {
-        parse_list_data(bullets[idx]);
+        parse_list_data(bullets[idx].data);
     }
     var enums = state.elems[t.pmd_LIST_ENUMERATOR];
     for (var idx = 0; idx < enums.length; idx++) {
-        parse_list_data(enums[idx]);
+        parse_list_data(enums[idx].data);
     }
     var bquotes = state.elems[t.pmd_BLOCKQUOTE];
     for (var idx = 0; idx < bquotes.length; idx++) {
