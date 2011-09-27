@@ -160,8 +160,8 @@ e.ext_name = function(ext) {
     }
 }
 
-var CRLF = /(\r\n|\n|\r)/gm;
-var TWICE_CRLF = /\r\n\r\n|\n\n|\r\r/;
+var EOL = /(\r\n|\n|\r)/gm;
+var DBL_EOL = /\r\n\r\n|\n\n|\r\r/gm;
 
 // =============================================================================
 // UTILS =======================================================================
@@ -174,7 +174,7 @@ function _pad(str, num) {
         result = '';
         while (num > 0) { result += ' '; num--; }
     } else {
-        var src = str.replace(CRLF, ' ');
+        var src = str.replace(EOL, ' ');
         if (num > src.length) {
             result = src;
             while (num > src.length) { result += ' '; num--; }
@@ -482,6 +482,7 @@ function release_waiters(state) {
 
 function parse_bquote(bquote) {
     //var bquote_res = $_parser.parse(bquote.text);
+    console.log(bquote);
 }
 
 function parse_list_data(list) {
@@ -489,8 +490,32 @@ function parse_list_data(list) {
     for (var item_id = 0; item_id < list.length; item_id++) {
         var start = list[item_id][0];
         var offset = list[item_id][1];
-        var text = list[item_id][3];
-        console.log(start, offset, text.split(TWICE_CRLF));
+        var text = list[item_id][3].split(DBL_EOL);
+        var to_parse = '';
+        console.log('==================');
+        console.log(start, offset, text);
+        console.log('------------------');
+        for (var para_id = 0; para_id < text.length; para_id++) {
+            var para = text[para_id];
+            var lines = para.split(EOL);
+            // FIXME: just for \r\n, recheck the eol for other types
+            var eol_idx = 0;
+            var last_eol = 0;
+            var l_offset = [];
+            var line_id = 0;
+            var cur_offset = /*start + */offset;
+            do {
+                eol_idx = para.indexOf('\r\n', eol_idx + 2);
+                var start = (line_id > 0) ? l_offset[line_id - 1] : 0;
+                var line = (eol_idx >= 0)
+                    ? para.substring(start, eol_idx + 2)
+                    : para.substring(start, para.length);
+                l_offset[line_id] = cur_offset;
+                cur_offset += line.length + 2;
+                line_id += 1;
+            } while (eol_idx >= 0);
+            console.log(lines, l_offset);
+        }
     }
 }
 
@@ -505,7 +530,7 @@ function parse_block_elems(state) {
     }
     var bquotes = state.elems[t.pmd_BLOCKQUOTE];
     for (var idx = 0; idx < bquotes.length; idx++) {
-        parse_bquote(bquotes[idx]);
+        parse_bquote(bquotes[idx].data);
     }
 }
 
@@ -522,7 +547,7 @@ function after(state) {
     // things to do after parsing
     release_waiters(state);
     //console.log($_parser);
-    parse_block_elems(state);
+    //parse_block_elems(state);
 }
 
 // =============================================================================
