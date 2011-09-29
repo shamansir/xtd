@@ -173,6 +173,9 @@ function _pad(str, num) {
     if (!str) {
         result = '';
         while (num > 0) { result += ' '; num--; }
+    } else if (str.length == 1) {
+        result = '';
+        while (num > 0) { result += str; num--; }
     } else {
         var src = str.replace(EOL, ' ');
         if (num > src.length) {
@@ -641,12 +644,12 @@ function state_info(state, view) {
            result += (view !== V_QUICK) ? '' : _pad('',7);
            result += 'CHLD :: ' + '\n';
            chain_walk(elem.children, function(ielem) {
-                result += _pad('', 12) + elem_info(ielem, 42, (view & V_NO_PAD_TEXT)) + '\n';
+                result += _pad('.', 5) + elem_info(ielem, 42, (view & V_NO_PAD_TEXT)) + '\n';
                 if (ielem.children.head) {
-                    result += _pad('', 11) + ' CHLD :: ' + '\n';
+                    result += _pad('.', 10) + ' CHLD :: ' + '\n';
                     chain_walk(ielem.children, function(iielem) {
-                        result += _pad('', 20) + elem_info(iielem, 34, (view & V_NO_PAD_TEXT)) + '\n';
-                        if (iielem.children.head) result += _pad('', 20) + 'has-children'
+                        result += _pad('.', 15) + elem_info(iielem, 34, (view & V_NO_PAD_TEXT)) + '\n';
+                        if (iielem.children.head) result += _pad('.', 20) + 'has-children'
                     });
                     if (view !== V_QUICK) result += '\n';
                 };
