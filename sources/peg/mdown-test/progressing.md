@@ -37,9 +37,21 @@ djjdjd
   With several lines
 > Yes it is
 
->> Two-level bloquote
+>> Two-level blockquote
 
 >>> Three-level blockquote
+
+        and the Verbatim inside the blockquote
+        With some lines of code
+        Yep
+
+        Please keep indent here also
+
+        {
+            Mooooooo
+        }
+
+    A paragraph inside the blockquote
 
 > Continues here
 
@@ -79,9 +91,11 @@ Line with 0 spaces at left
 
 > ### Header
 
-> Header
-> --------
-> Some text
+>   Header
+    --------
+    Some text
+
+> More...
 
 3. aND ordered here
 4. Yabadabadoo

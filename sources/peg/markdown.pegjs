@@ -56,9 +56,20 @@ Doc =       ( Block )*
 // placeholder for marking locations
 LocMarker = &. { return _chunk.pos; }
 
+/* IndentMarker = n:("\t" { return 1; } /
+                  "    "+ { return 1; } /
+                  "\t\t" { return 2; } /
+                  "        " { return 2; } /
+                  "    \t" { return 2; } /
+                  "\t    " { return 2; } /
+                  "\t\t\t" { return 3; } /
+                  "            " { return 3; } /
+                  "\t\t\t\t" { return 4; } /
+                  "                " { return 4; } /
+                  "\t\t\t\t\t" { return 5; } /
+                  "                    " { return 5; }) { console.log('*' + n + '*'); return n; } */
 
-Block =     BlankLine*
-            ( BlockQuote
+BlockElm = ( BlockQuote
             / Verbatim
             / Note
             / Reference
@@ -70,7 +81,14 @@ Block =     BlankLine*
             / StyleBlock
             / Para
             / Plain )
-            BlankLine*
+
+Block =     BlankLine*
+            txt:(BlockElm { return _chunk.match; })
+            BlankLine* { return txt; }
+
+IndentedBlock = BlankLine*
+                Indent txt:(BlockElm { return _chunk.match; })
+                BlankLine* { return txt; }
 
 Para =      NonindentSpace txt:Inlines BlankLine+ { d.add(d.elem_ct(t.pmd_PARA,_chunk,txt)); }
 
@@ -106,22 +124,16 @@ SetextHeading2 =  &(RawLine SetextBottom2)
 
 Heading = SetextHeading / AtxHeading
 
-// TODO: allow double-triple blockquotes?
-BlockQuote = lines:BlockQuoteRaw
-             { for (var i = 0, text = ''; i < lines.length; i++) {
-                   text += lines[i][2];
-               }
-               d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,text),lines);
-             }
+BlockQuote = w:( '>'+ ' '? { return _chunk.match } )
+             s:LocMarker
+             start:( Block { return _chunk.match } )
+             next:( !'>' !BlankLine blk:IndentedBlock { return blk } )*
+             ( BlankLine ) *
+             { d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,start+next.join('')),[w,s]); }
 
-BlockQuoteRaw =  lines:( w:( '>' ' '? { return _chunk.match } )
-                         s:LocMarker
-                         start:( Line { return _chunk.match } )
-                         next:( !'>' !BlankLine Line { return _chunk.match } )*
-                         stop:( BlankLine { return '\n' } )*
-                         { return [w, s, start + next.join('') + stop] }
-                       )+
-                 { return lines; }
+// FIXME: verbatim wraps up the last paragraph in blockqoute
+// TODO: length of '>' for data
+// FIXME: verbatim must save the text without indent (blockquotes may)
 
 NonblankIndentedLine = !BlankLine IndentedLine
 
