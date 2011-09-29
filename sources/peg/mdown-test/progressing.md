@@ -41,6 +41,8 @@ djjdjd
 
 >>> Three-level blockquote
 
+    A first paragraph inside the blockquote
+
         and the Verbatim inside the blockquote
         With some lines of code
         Yep
@@ -51,9 +53,44 @@ djjdjd
             Mooooooo
         }
 
-    A paragraph inside the blockquote
+    A second paragraph inside the blockquote
+
+    * A list inside the blockquote
+    * The second item
 
 > Continues here
+
+>> 1. An ordered list
+>> 2. In two-levelled
+>> 4. Blockquote
+>> 5. Paragraph
+>>
+>>    Header
+> >   ------
+>> 6. He-je
+>> 7. * Yep
+>>     * It is
+>>     * Goo
+>>       Goo
+
+1. A list
+2. A list with verbatim
+Long paragraph
+
+    Second paragraph with several
+lines
+
+    Third paragraph with both
+    lines indented
+
+    Some verbatim {
+        return wooo;
+            boo;
+    }
+
+    And **one** paragraph in the end
+
+3. List continues
 
 <h5>OHOHO</h5>
 

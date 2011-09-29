@@ -56,21 +56,7 @@ Doc =       ( Block )*
 // placeholder for marking locations
 LocMarker = &. { return _chunk.pos; }
 
-/* IndentMarker = n:("\t" { return 1; } /
-                  "    "+ { return 1; } /
-                  "\t\t" { return 2; } /
-                  "        " { return 2; } /
-                  "    \t" { return 2; } /
-                  "\t    " { return 2; } /
-                  "\t\t\t" { return 3; } /
-                  "            " { return 3; } /
-                  "\t\t\t\t" { return 4; } /
-                  "                " { return 4; } /
-                  "\t\t\t\t\t" { return 5; } /
-                  "                    " { return 5; }) { console.log('*' + n + '*'); return n; } */
-
 BlockElm = ( BlockQuote
-            / Verbatim
             / Note
             / Reference
             / HorizontalRule
@@ -83,12 +69,12 @@ BlockElm = ( BlockQuote
             / Plain )
 
 Block =     BlankLine*
-            txt:(BlockElm { return _chunk.match; })
-            BlankLine* { return txt; }
+            (VerbatimL1 / BlockElm)
+            BlankLine*
 
 IndentedBlock = BlankLine*
-                Indent txt:(BlockElm { return _chunk.match; })
-                BlankLine* { return txt; }
+                (VerbatimL2 / Indent BlockElm)
+                BlankLine*
 
 Para =      NonindentSpace txt:Inlines BlankLine+ { d.add(d.elem_ct(t.pmd_PARA,_chunk,txt)); }
 
@@ -124,24 +110,50 @@ SetextHeading2 =  &(RawLine SetextBottom2)
 
 Heading = SetextHeading / AtxHeading
 
-BlockQuote = w:( '>'+ ' '? { return _chunk.match } )
-             s:LocMarker
-             start:( Block { return _chunk.match } )
-             next:( !'>' !BlankLine blk:IndentedBlock { return blk } )*
-             ( BlankLine ) *
-             { d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,start+next.join('')),[w,s]); }
+BlockQuote = block:BlockBasedBlockquote
+             { d.add(d.elem_ct(t.pmd_BLOCKQUOTE,_chunk,block.text),block); }
 
-// FIXME: verbatim wraps up the last paragraph in blockqoute
+/* OneLinersBlockquote = lines:(
+                         w:( l:('>'+ { return _chunk.match } ) ' '? { return l.length } )
+                         s:LocMarker
+                         start:( Line { return _chunk.match } )
+                         next:( !'>' !BlankLine Line { return _chunk.match } )*
+                         stop:( BlankLine { return '\n' } )*
+                         { return { 'text': start+next.join('')+stop, 'start': s,
+                                    'level': w } }
+                      )+
+                      { return lines; } */
+
+BlockBasedBlockquote = w:( l:('>'+ { return _chunk.match } ) ' '?
+                           { return l.length } )
+                       s:LocMarker
+                       start:( Block { return _chunk.match } )
+                       next:( !'>' IndentedBlock { return _chunk.match; } )*
+                       ( BlankLine )*
+                       { return { 'text': start+next.join(''), 'start': s, 'level': w } }
+
+// FIXME: verbatim wraps up the last paragraph in blockquote
 // TODO: length of '>' for data
 // FIXME: verbatim must save the text without indent (blockquotes may)
+// FIXME: blockquote collects last blank line (or let it be?)
 
-NonblankIndentedLine = !BlankLine IndentedLine
+VerbatimChunkL1 = ( BlankLine )*
+                  ( !BlankLine Indent Line )+
 
-VerbatimChunk = ( BlankLine )*
-                NonblankIndentedLine+
+VerbatimChunkL2 = ( BlankLine )*
+                  ( !BlankLine Indent Indent+ Line )+
 
-Verbatim =     VerbatimChunk+
-               { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+VerbatimChunkL3 = ( BlankLine )*
+                  ( !BlankLine Indent Indent Indent+ Line )+
+
+VerbatimL1 = VerbatimChunkL1+
+             { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+
+VerbatimL2 = VerbatimChunkL2+
+             { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+
+VerbatimL3 = VerbatimChunkL3+
+             { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
 HorizontalRule = NonindentSpace
                  s1:LocMarker
