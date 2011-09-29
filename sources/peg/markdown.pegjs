@@ -72,9 +72,28 @@ Block =     BlankLine*
             (VerbatimL1 / BlockElm)
             BlankLine*
 
-IndentedBlock = BlankLine*
-                (VerbatimL2 / Indent BlockElm)
-                BlankLine*
+IndentedBlockL1 = BlankLine*
+                  (VerbatimL2 / Indent BlockElm)
+                  BlankLine*
+
+IndentedBlockL2 = BlankLine*
+                  (VerbatimL3 / Indent Indent BlockElm)
+                  BlankLine*
+
+IndentedBlockL3 = BlankLine*
+                  (VerbatimL4 / Indent Indent Indent BlockElm)
+                  BlankLine*
+
+IndentedBlockL4 = BlankLine*
+                  (VerbatimL5 / Indent Indent Indent Indent BlockElm)
+                  BlankLine*
+
+IndentedBlockL5 = BlankLine*
+                  (VerbatimL6 / Indent Indent Indent Indent Indent BlockElm)
+                  BlankLine*
+
+AnyIndentedBlock = ( IndentedBlockL1 / IndentedBlockL2 / IndentedBlockL3 /
+                     IndentedBlockL4 / IndentedBlockL5 )
 
 Para =      NonindentSpace txt:Inlines BlankLine+ { d.add(d.elem_ct(t.pmd_PARA,_chunk,txt)); }
 
@@ -128,12 +147,10 @@ BlockBasedBlockquote = w:( l:('>'+ { return _chunk.match } ) ' '?
                            { return l.length } )
                        s:LocMarker
                        start:( Block { return _chunk.match } )
-                       next:( !'>' IndentedBlock { return _chunk.match; } )*
+                       next:( !'>' AnyIndentedBlock { return _chunk.match; } )*
                        ( BlankLine )*
                        { return { 'text': start+next.join(''), 'start': s, 'level': w } }
 
-// FIXME: verbatim wraps up the last paragraph in blockquote
-// TODO: length of '>' for data
 // FIXME: verbatim must save the text without indent (blockquotes may)
 // FIXME: blockquote collects last blank line (or let it be?)
 
@@ -146,6 +163,15 @@ VerbatimChunkL2 = ( BlankLine )*
 VerbatimChunkL3 = ( BlankLine )*
                   ( !BlankLine Indent Indent Indent+ Line )+
 
+VerbatimChunkL4 = ( BlankLine )*
+                  ( !BlankLine Indent Indent Indent Indent+ Line )+
+
+VerbatimChunkL5 = ( BlankLine )*
+                  ( !BlankLine Indent Indent Indent Indent Indent+ Line )+
+
+VerbatimChunkL6 = ( BlankLine )*
+                  ( !BlankLine Indent Indent Indent Indent Indent Indent+ Line )+
+
 VerbatimL1 = VerbatimChunkL1+
              { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
@@ -153,6 +179,15 @@ VerbatimL2 = VerbatimChunkL2+
              { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
 VerbatimL3 = VerbatimChunkL3+
+             { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+
+VerbatimL4 = VerbatimChunkL4+
+             { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+
+VerbatimL5 = VerbatimChunkL5+
+             { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
+
+VerbatimL6 = VerbatimChunkL6+
              { d.add(d.elem_c(t.pmd_VERBATIM,_chunk)) }
 
 HorizontalRule = NonindentSpace

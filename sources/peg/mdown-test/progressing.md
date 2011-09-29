@@ -58,6 +58,10 @@ djjdjd
     * A list inside the blockquote
     * The second item
 
+        Paragraph
+
+            And verbatim inside
+
 > Continues here
 
 >> 1. An ordered list
