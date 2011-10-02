@@ -52,7 +52,7 @@
     <property name="sources.dir" value=".." />
     <property name="project.dir" value="." />
 
-    <property name="assets-src.dir" value="${sources.dir}/js" />
+    <property name="assets-src.dir" value="${sources.dir}/assets" />
     <property name="assets-dst.dir" value="${project.dir}/assets" />
     <property name="libs-src.dir" value="${root.dir}/requirements" />
     <property name="libs-dst.dir" value="${project.dir}/libs" />
@@ -60,8 +60,8 @@
     <property name="apk-dst.dir" value="${root.dir}" />
     <!-- <property name="libs-dst.dir" value="${native.libs.dir}" /> -->
 
-    <fileset id="assets-src.files" dir="${assets-src.dir}" includes="*.js" />
-    <fileset id="assets-dst.files" dir="${assets-dst.dir}" includes="**/*.js" />
+    <fileset id="assets-src.files" dir="${assets-src.dir}" includes="**" excludes="**/*.peg* **/*.md **/mdown-test" followsymlinks="false" />
+    <fileset id="assets-dst.files" dir="${assets-dst.dir}" />
     <fileset id="libs-src.files" dir="${libs-src.dir}" includes="**/*.jar" />
     <fileset id="libs-dst.files" dir="${libs-dst.dir}" includes="**/*.jar" />
 

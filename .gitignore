@@ -3,9 +3,10 @@
 /sources/apk-API*/bin
 /sources/apk-API*/gen
 /sources/apk-API*/libs
-/sources/apk-API*/assets/*.js
+/sources/apk-API*/assets
 /sources/apk-API*/local.properties
-/sources/js/node_modules
+/sources/assets/mdown-parse-pegjs/node_modules
 /requirements/rhino*.jar
 /eclipse-files-API*.zip
 /xtd-API*-*.apk
+*.swp

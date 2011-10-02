@@ -28,7 +28,7 @@ public class XtdActivity extends Activity {
         Scriptable scope = cx.initStandardObjects();
         InputStream calcParser = null;
         try {
-            calcParser = getAssets().open("calc-parser.js");
+            calcParser = getAssets().open("calc-parse-pegjs/calc-parser.js");
             cx.evaluateReader(scope, new InputStreamReader(calcParser),
                     "calc-parser", 0, null);
             cx.evaluateString(scope, "result = CalcParser.parse('(3+4)*2+2*3')", "res", 0, null);
