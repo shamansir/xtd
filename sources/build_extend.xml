@@ -81,7 +81,7 @@
     </target>
 
     <target name="-prepare-assets-and-libs">
-        <echo message="Removing symlinks from '${assets-dst.dir}' directory" />
+        <echo message="Removing anything from '${assets-dst.dir}' directory" />
         <delete>
            <fileset refid="assets-dst.files" />
         </delete>
@@ -100,12 +100,12 @@
     </target>
 
     <target name="-revert-to-symlinks">
-        <echo message="Removing files from '${assets-dst.dir}' directory" />
+        <!-- <echo message="Removing files from '${assets-dst.dir}' directory" />
         <delete>
            <fileset refid="assets-dst.files" />
         </delete>
         <echo message="Creating symlinks for files from '${assets-src.dir}' in '${assets-dst.dir}' directory" />
-        <symlinkfileset fsrefid="assets-src.files" destdir="${assets-dst.dir}" />
+        <symlinkfileset fsrefid="assets-src.files" destdir="${assets-dst.dir}" /> -->
         <echo message="Removing files from '${libs-dst.dir}' directory" />
         <delete>
            <fileset refid="libs-dst.files" />
